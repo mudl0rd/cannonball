@@ -1,4 +1,5 @@
 INCFLAGS := -I$(CORE_DIR)/src/main \
+			   -I$(CORE_DIR)/src/main/libretro \
 				-I$(CORE_DIR)/deps
 
 #FLAGS += -DCANNONBOARD

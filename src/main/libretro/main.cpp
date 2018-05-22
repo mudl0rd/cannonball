@@ -334,120 +334,230 @@ static void retro_run_internal(void)
 
 static bool retro_load_game_internal(void)
 {
-    bool loaded = roms.load_revb_roms();
+   //trackloader.set_layout_track("d:/temp.bin");
+   bool loaded = roms.load_revb_roms();
 
-    if (!loaded)
-       return false;
+   if (!loaded)
+      return false;
 
-    config_init();
+   config_init();
 
-    // Load fixed PCM ROM based on config
-    if (config.sound.fix_samples)
-       roms.load_pcm_rom(true);
+   // Load fixed PCM ROM based on config
+   if (config.sound.fix_samples)
+      roms.load_pcm_rom(true);
 
-    // Load patched widescreen tilemaps
-    if (!omusic.load_widescreen_map())
-    {
-       fprintf(stderr, "Unable to load widescreen tilemaps\n");
-       return false;
-    }
+   // Load patched widescreen tilemaps
+   if (!omusic.load_widescreen_map())
+   {
+      fprintf(stderr, "Unable to load widescreen tilemaps\n");
+      return false;
+   }
 
-    if (!video.init(&roms, &config.video))
-       return false;
+   if (!video.init(&roms, &config.video))
+      return false;
 
-    menu = new Menu(&cannonboard);
+   menu = new Menu(&cannonboard);
 
 #ifdef COMPILE_SOUND_CODE
-    audio.init();
+   audio.init();
 #endif
-    state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+   state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
-    // Initialize controls
-    input.init(config.controls.pad_id,
-          config.controls.keyconfig, config.controls.padconfig, 
-          config.controls.analog,    config.controls.axis, config.controls.asettings);
+   // Initialize controls
+   input.init(config.controls.pad_id,
+         config.controls.keyconfig, config.controls.padconfig, 
+         config.controls.analog,    config.controls.axis, config.controls.asettings);
 
-    if (config.controls.haptic) 
-       config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+   if (config.controls.haptic) 
+      config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
 
 #ifdef CANNONBOARD
-    // Initialize CannonBoard (For use in original cabinets)
-    if (config.cannonboard.enabled)
-    {
-       cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
-       cannonboard.start();
-    }
+   // Initialize CannonBoard (For use in original cabinets)
+   if (config.cannonboard.enabled)
+   {
+      cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
+      cannonboard.start();
+   }
 #endif
 
-    // Populate menus
-    menu->populate();
+   // Populate menus
+   menu->populate();
+
+   return true;
 }
 
-#if 0
-int main(int argc, char* argv[])
+//
+//  libretro.cpp
+
+#include <libretro.h>
+
+static retro_log_printf_t          log_cb;
+retro_video_refresh_t       video_cb;
+static retro_input_poll_t          input_poll_cb;
+static retro_input_state_t         input_state_cb;
+static retro_environment_t         environ_cb;
+static retro_audio_sample_t        audio_cb;
+static retro_audio_sample_batch_t  audio_batch_cb;
+static struct retro_system_av_info g_av_info;
+
+/************************************
+ * libretro implementation
+ ************************************/
+
+
+void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
+
+void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
+
+void retro_set_audio_sample(retro_audio_sample_t cb) { audio_cb = cb; }
+
+void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) { audio_batch_cb = cb; }
+
+void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
+
+void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
+
+void retro_get_system_info(struct retro_system_info *info) {
+	memset(info, 0, sizeof(*info));
+	info->library_name     = "Cannonball";
+	info->library_version  = "git";
+	info->need_fullpath    = true;
+	info->valid_extensions = "map";
+}
+
+void retro_get_system_av_info(struct retro_system_av_info *info) {
+	memset(info, 0, sizeof(*info));
+	info->timing.fps            = 60.0;
+	info->timing.sample_rate    = 44100;
+	info->geometry.base_width   = S16_WIDTH;
+	info->geometry.base_height  = S16_HEIGHT;
+	info->geometry.max_width    = S16_WIDTH << 1;
+	info->geometry.max_height   = S16_WIDTH << 1;
+	info->geometry.aspect_ratio = 16.0f / 9.0f;
+}
+
+void retro_set_controller_port_device(unsigned port, unsigned device) {
+	(void) port;
+	(void) device;
+}
+
+size_t retro_serialize_size(void) {
+   return 0;
+}
+
+bool retro_serialize(void *data, size_t size)
 {
-    menu = new Menu(&cannonboard);
-
-    bool loaded = false;
-
-    // Load LayOut File
-    if (argc == 3 && strcmp(argv[1], "-file") == 0)
-    {
-        if (trackloader.set_layout_track(argv[2]))
-            loaded = roms.load_revb_roms(); 
-    }
-    // Load Roms Only
-    else
-    {
-        loaded = roms.load_revb_roms();
-    }
-
-    //trackloader.set_layout_track("d:/temp.bin");
-    //loaded = roms.load_revb_roms();
-
-    if (loaded)
-    {
-        // Load XML Config
-        config.load(FILENAME_CONFIG);
-
-        // Load fixed PCM ROM based on config
-        if (config.sound.fix_samples)
-            roms.load_pcm_rom(true);
-
-        // Load patched widescreen tilemaps
-        if (!omusic.load_widescreen_map())
-            std::cout << "Unable to load widescreen tilemaps" << std::endl;
-
-        if (!video.init(&roms, &config.video))
-            retro_unload_game_internal();
-
-#ifdef COMPILE_SOUND_CODE
-        audio.init();
-#endif
-        state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
-
-        // Initialize controls
-        input.init(config.controls.pad_id,
-                   config.controls.keyconfig, config.controls.padconfig, 
-                   config.controls.analog,    config.controls.axis, config.controls.asettings);
-
-        if (config.controls.haptic) 
-            config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
-        
-        // Initialize CannonBoard (For use in original cabinets)
-        if (config.cannonboard.enabled)
-        {
-            cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
-            cannonboard.start();
-        }
-
-        // Populate menus
-        menu->populate();
-        while (state != STATE_QUIT) // Loop until we quit the app
-           retro_run_internal();
-    }
-
-    retro_unload_game_internal();
-    return 0;
+   return false;
 }
-#endif
+
+bool retro_unserialize(const void *data, size_t size)
+{
+   return false;
+}
+
+void retro_cheat_reset(void) {}
+
+void retro_cheat_set(unsigned index, bool enabled, const char *code)
+{
+	(void) index;
+	(void) enabled;
+	(void) code;
+}
+
+bool retro_load_game(const struct retro_game_info *info)
+{
+	enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+
+	struct retro_input_descriptor desc[] = {
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Action"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Draw / Holster"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Use"},
+		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Inventory / Skip"},
+
+		{0},
+	};
+
+	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+
+	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+   {
+		if (log_cb)
+			log_cb(RETRO_LOG_INFO, "[RE]: XRGB8888 is not supported.\n");
+		return false;
+	}
+
+   retro_load_game_internal();
+
+	return true;
+}
+
+bool retro_load_game_special(unsigned game_type,
+      const struct retro_game_info *info, size_t num_info)
+{
+	(void) game_type;
+	(void) info;
+	(void) num_info;
+	return false;
+}
+
+void retro_unload_game(void)
+{
+   retro_unload_game_internal();
+}
+
+unsigned retro_get_region(void)
+{
+	return RETRO_REGION_NTSC;
+}
+
+unsigned retro_api_version(void)
+{
+	return RETRO_API_VERSION;
+}
+
+void *retro_get_memory_data(unsigned id)
+{
+   switch (id)
+   {
+      case RETRO_MEMORY_SYSTEM_RAM:
+      default:
+         break;
+   }
+
+   return NULL;
+}
+
+size_t retro_get_memory_size(unsigned id)
+{
+   return 0;
+}
+
+void retro_init(void)
+{
+	struct retro_log_callback log;
+	unsigned                  level = 2;
+
+	if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
+		log_cb = log.log;
+	else
+		log_cb = NULL;
+
+	environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
+}
+
+void retro_deinit(void)
+{
+}
+
+void retro_reset(void)
+{
+}
+
+void retro_run(void)
+{
+   retro_run_internal();
+}

@@ -10,9 +10,12 @@
 
 #include <iostream>
 #include <string.h>
+#include <libretro.h>
 
 #include "rendersw.hpp"
 #include "frontend/config.hpp"
+
+extern retro_video_refresh_t       video_cb;
 
 RenderSW::RenderSW()
 {
@@ -88,10 +91,12 @@ bool RenderSW::finalize_frame()
 
 void RenderSW::draw_frame(uint16_t* pixels)
 {
+   uint32_t* pixx = NULL;
+
     // Do Scaling
     if (scale_factor != 1)
     {
-        uint32_t* pixx = pix;
+        pixx = pix;
 
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (src_width * src_height); i++)
@@ -123,16 +128,17 @@ void RenderSW::draw_frame(uint16_t* pixels)
     // No Scaling
     else
     {
-        uint32_t* spix = screen_pixels;
+        pixx = screen_pixels;
     
         // Lookup real RGB value from rgb array for backbuffer
         for (int i = 0; i < (src_width * src_height); i++)
-            *(spix++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
+            *(pixx++) = rgb[*(pixels++) & ((S16_PALETTE_ENTRIES * 3) - 1)];
     }
 
     // Example: Set the pixel at 10,10 to red
     //pixels[( 10 * surface->w ) + 10] = 0xFF0000;
     // ------------------------------------------------------------------------      
+    video_cb(pixx, dst_width, dst_height, dst_width << 1);
 }
 
 // Fastest scaling algorithm. Scales proportionally.
