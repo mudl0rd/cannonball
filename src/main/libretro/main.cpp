@@ -29,7 +29,7 @@
 
 // Direct X Haptic Support.
 // Fine to include on non-windows builds as dummy functions used.
-#include "directx/ffeedback.hpp"
+#include "ffeedback.hpp"
 
 // Initialize Shared Variables
 using namespace cannonball;

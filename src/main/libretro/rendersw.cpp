@@ -9,6 +9,7 @@
 ***************************************************************************/
 
 #include <iostream>
+#include <string.h>
 
 #include "rendersw.hpp"
 #include "frontend/config.hpp"

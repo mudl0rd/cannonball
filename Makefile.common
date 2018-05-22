@@ -1,17 +1,23 @@
-INCFLAGS := -I$(CORE_DIR)/src/main
+INCFLAGS := -I$(CORE_DIR)/src/main \
+				-I$(CORE_DIR)/deps
 
 SOURCES_C :=
 
 SOURCES_CXX := \
 					$(CORE_DIR)/src/main/libretro/main.cpp \
+					$(CORE_DIR)/src/main/libretro/ffeedback.cpp \
 					$(CORE_DIR)/src/main/libretro/audio.cpp \
 					$(CORE_DIR)/src/main/libretro/input.cpp \
 					$(CORE_DIR)/src/main/libretro/renderbase.cpp \
+					$(CORE_DIR)/src/main/libretro/rendersw.cpp \
 					$(CORE_DIR)/src/main/roms.cpp \
+					$(CORE_DIR)/src/main/romloader.cpp \
+					$(CORE_DIR)/src/main/trackloader.cpp \
 					$(CORE_DIR)/src/main/utils.cpp \
 					$(CORE_DIR)/src/main/video.cpp \
 					\
-					$(CORE_DIR)/src/main/cannonboard/interface.cpp
+					$(CORE_DIR)/src/main/cannonboard/interface.cpp \
+					$(CORE_DIR)/src/main/cannonboard/asyncserial.cpp
 
 SOURCES_CXX += $(CORE_DIR)/src/main/engine/oanimseq.cpp \
 					$(CORE_DIR)/src/main/engine/oattractai.cpp \
@@ -50,11 +56,6 @@ SOURCES_CXX += $(CORE_DIR)/src/main/engine/oanimseq.cpp \
 					$(CORE_DIR)/src/main/hwvideo/hwtiles.cpp \
 					\
 					$(CORE_DIR)/src/main/frontend/cabdiag.cpp \
+					$(CORE_DIR)/src/main/frontend/config.cpp \
+					$(CORE_DIR)/src/main/frontend/menu.cpp \
 					$(CORE_DIR)/src/main/frontend/ttrial.cpp
-
-# Boost deps needed for files below 
-#
-SOURCES_CXX += $(CORE_DIR)/src/main/cannonboard/asyncserial.cpp
-#SOURCES_CXX += $(CORE_DIR)/src/main/frontend/config.cpp
-#SOURCES_CXX += $(CORE_DIR)/src/main/frontend/menu.cpp
-#SOURCES_CXX += $(CORE_DIR)/src/main/romloader.cpp
