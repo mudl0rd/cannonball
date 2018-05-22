@@ -95,6 +95,139 @@ static void process_events(void)
 // Pause Engine
 bool pause_engine;
 
+static void config_init(void)
+{
+    // ------------------------------------------------------------------------
+    // Menu Settings
+    // ------------------------------------------------------------------------
+
+    config.menu.enabled           = 1;
+    config.menu.road_scroll_speed = 50;
+
+    // ------------------------------------------------------------------------
+    // Video Settings
+    // ------------------------------------------------------------------------
+   
+    config.video.mode       = 0; // Video Mode: Default is Windowed 
+    config.video.scale      = 2; // Video Scale: Default is 2x    
+    config.video.scanlines  = 0; // Scanlines
+    config.video.fps        = 2; // Default is 60 fps
+    config.video.fps_count  = 0; // FPS Counter
+    config.video.widescreen = 1; // Enable Widescreen Mode
+    config.video.hires      = 0; // Hi-Resolution Mode
+    config.video.filtering  = 0; // Open GL Filtering Mode
+          
+    config.set_fps(config.video.fps);
+
+    // ------------------------------------------------------------------------
+    // Sound Settings
+    // ------------------------------------------------------------------------
+    config.sound.enabled     = 0;
+    config.sound.advertise   = 1;
+    config.sound.preview     = 1;
+    config.sound.fix_samples = 1;
+
+#if 0
+    // Custom Music
+    for (int i = 0; i < 4; i++)
+    {
+        std::string xmltag = "sound.custom_music.track";
+        xmltag += Utils::to_string(i+1);  
+
+        config.sound.custom_music[i].enabled = pt_config.get(xmltag + ".<xmlattr>.enabled", 0);
+        config.sound.custom_music[i].title   = pt_config.get(xmltag + ".title", "TRACK " +Utils::to_string(i+1));
+        config.sound.custom_music[i].filename= pt_config.get(xmltag + ".filename", "track"+Utils::to_string(i+1)+".wav");
+    }
+#endif
+
+#ifdef CANNONBOARD
+    // ------------------------------------------------------------------------
+    // CannonBoard Settings
+    // ------------------------------------------------------------------------
+    cannonboard.enabled = 1;
+    cannonboard.port    = "COM6";
+    cannonboard.baud    = 57600;
+    cannonboard.debug   = 0;
+    cannonboard.cabinet = 0;
+#endif
+
+    // ------------------------------------------------------------------------
+    // Controls
+    // ------------------------------------------------------------------------
+    config.controls.gear          = 0;
+    config.controls.steer_speed   = 3;
+    config.controls.pedal_speed   = 4;
+    config.controls.keyconfig[0]  = 273; /* up */
+    config.controls.keyconfig[1]  = 274; /* down */
+    config.controls.keyconfig[2]  = 276; /* left */
+    config.controls.keyconfig[3]  = 275; /* right */
+    config.controls.keyconfig[4]  = 122; /* accelerate */
+    config.controls.keyconfig[5]  = 120; /* brake */
+    config.controls.keyconfig[6]  = 32; /* gear1 */
+    config.controls.keyconfig[7]  = 32; /* gear2 */
+    config.controls.keyconfig[8]  = 49; /* start */
+    config.controls.keyconfig[9]  = 53; /* coin */
+    config.controls.keyconfig[10] = 286; /* menu */
+    config.controls.keyconfig[11] = 304; /* view */
+    config.controls.padconfig[0]  = 0; /* accelerate */
+    config.controls.padconfig[1]  = 1; /* brake */
+    config.controls.padconfig[2]  = 2; /* gear1 */
+    config.controls.padconfig[3]  = 2; /* gear2 */
+    config.controls.padconfig[4]  = 3; /* start */
+    config.controls.padconfig[5]  = 4; /* coin */
+    config.controls.padconfig[6]  = 5; /* padconfig menu */
+    config.controls.padconfig[7]  = 6; /* padconfig view */
+    config.controls.analog        = 0;
+    config.controls.pad_id        = 0; /* pad_id */
+    config.controls.axis[0]       = 0; /* wheel */
+    config.controls.axis[1]       = 2; /* accelerate */
+    config.controls.axis[2]       = 3; /* brake */
+    config.controls.asettings[0]  = 75; /* wheel zone */
+    config.controls.asettings[1]  = 0; /* wheel dead */
+    config.controls.asettings[2]  = 0; /* pedals dead */
+    
+    config.controls.haptic        = 0;
+    config.controls.max_force     = 9000;
+    config.controls.min_force     = 8500;
+    config.controls.force_duration= 20;
+
+    // ------------------------------------------------------------------------
+    // Engine Settings
+    // ------------------------------------------------------------------------
+
+    config.engine.dip_time      = 0;
+    config.engine.dip_traffic   = 1;
+    
+    config.engine.freeze_timer    = config.engine.dip_time == 4;
+    config.engine.disable_traffic = config.engine.dip_traffic == 4;
+    config.engine.dip_time    &= 3;
+    config.engine.dip_traffic &= 3;
+
+    config.engine.freeplay      = 1;
+    config.engine.jap           = 0; /* japanese tracks */
+    config.engine.prototype     = 0;
+    
+    // Additional Level Objects
+    config.engine.level_objects   = 1;
+    config.engine.randomgen       = 1;
+    config.engine.fix_bugs_backup = 
+    config.engine.fix_bugs        = 1;
+    config.engine.fix_timer       = 0;
+    config.engine.layout_debug    = 0;
+    config.engine.new_attract     = 1;
+
+    // ------------------------------------------------------------------------
+    // Time Trial Mode
+    // ------------------------------------------------------------------------
+
+    config.ttrial.laps    = 5;
+    config.ttrial.traffic = 3;
+
+    config.cont_traffic   = 3;
+
+    config.fps     = 60;
+}
+
 static void retro_run_internal(void)
 {
     frame++;
@@ -205,6 +338,8 @@ static bool retro_load_game_internal(void)
 
     if (!loaded)
        return false;
+
+    config_init();
 
     // Load fixed PCM ROM based on config
     if (config.sound.fix_samples)
