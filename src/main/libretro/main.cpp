@@ -47,16 +47,6 @@ Audio cannonball::audio;
 Menu* menu;
 Interface cannonboard;
 
-static void retro_unload_game_internal(void)
-{
-#ifdef COMPILE_SOUND_CODE
-    audio.stop_audio();
-#endif
-    input.close();
-    forcefeedback::close();
-    delete menu;
-}
-
 static void process_events(void)
 {
 #if 0
@@ -228,163 +218,6 @@ static void config_init(void)
     config.fps     = 60;
 }
 
-static void retro_run_internal(void)
-{
-    frame++;
-
-    // Get CannonBoard Packet Data
-    Packet* packet = NULL;
-    
-#ifdef CANNONBOARD
-    if (config.cannonboard.enabled)
-       packet      = cannonboard.get_packet();
-#endif
-
-    // Non standard FPS.
-    // Determine whether to tick the current frame.
-    if (config.fps != 30)
-    {
-        if (config.fps == 60)
-            tick_frame = frame & 1;
-        else if (config.fps == 120)
-            tick_frame = (frame & 3) == 1;
-    }
-
-    process_events();
-
-    if (tick_frame)
-        oinputs.tick(packet); // Do Controls
-    oinputs.do_gear();        // Digital Gear
-
-    switch (state)
-    {
-        case STATE_GAME:
-        {
-            if (input.has_pressed(Input::TIMER))
-                outrun.freeze_timer = !outrun.freeze_timer;
-
-            if (input.has_pressed(Input::PAUSE))
-                pause_engine = !pause_engine;
-
-            if (input.has_pressed(Input::MENU))
-                state = STATE_INIT_MENU;
-
-            if (!pause_engine || input.has_pressed(Input::STEP))
-            {
-                outrun.tick(packet, tick_frame);
-                input.frame_done(); // Denote keys read
-
-                #ifdef COMPILE_SOUND_CODE
-                // Tick audio program code
-                osoundint.tick();
-                // Tick Audio
-                audio.tick();
-                #endif
-            }
-            else
-            {                
-                input.frame_done(); // Denote keys read
-            }
-        }
-        break;
-
-        case STATE_INIT_GAME:
-            if (config.engine.jap && !roms.load_japanese_roms())
-            {
-                state = STATE_QUIT;
-            }
-            else
-            {
-                pause_engine = false;
-                outrun.init();
-                state = STATE_GAME;
-            }
-            break;
-
-        case STATE_MENU:
-        {
-            menu->tick(packet);
-            input.frame_done();
-            #ifdef COMPILE_SOUND_CODE
-            // Tick audio program code
-            osoundint.tick();
-            // Tick Audio
-            audio.tick();
-            #endif
-        }
-        break;
-
-        case STATE_INIT_MENU:
-            oinputs.init();
-            outrun.outputs->init();
-            menu->init();
-            state = STATE_MENU;
-            break;
-    }
-
-#ifdef CANNONBOARD
-    // Write CannonBoard Outputs
-    if (config.cannonboard.enabled)
-        cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
-#endif
-
-    // Draw Video
-    video.draw_frame();  
-}
-
-static bool retro_load_game_internal(void)
-{
-   //trackloader.set_layout_track("d:/temp.bin");
-   bool loaded = roms.load_revb_roms();
-
-   if (!loaded)
-      return false;
-
-   config_init();
-
-   // Load fixed PCM ROM based on config
-   if (config.sound.fix_samples)
-      roms.load_pcm_rom(true);
-
-   // Load patched widescreen tilemaps
-   if (!omusic.load_widescreen_map())
-   {
-      fprintf(stderr, "Unable to load widescreen tilemaps\n");
-   }
-
-   if (!video.init(&roms, &config.video))
-      return false;
-
-   menu = new Menu(&cannonboard);
-
-#ifdef COMPILE_SOUND_CODE
-   audio.init();
-#endif
-   state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
-
-   // Initialize controls
-   input.init(config.controls.pad_id,
-         config.controls.keyconfig, config.controls.padconfig, 
-         config.controls.analog,    config.controls.axis, config.controls.asettings);
-
-   if (config.controls.haptic) 
-      config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
-
-#ifdef CANNONBOARD
-   // Initialize CannonBoard (For use in original cabinets)
-   if (config.cannonboard.enabled)
-   {
-      cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
-      cannonboard.start();
-   }
-#endif
-
-   // Populate menus
-   menu->populate();
-
-   return true;
-}
-
 //
 //  libretro.cpp
 
@@ -502,9 +335,55 @@ bool retro_load_game(const struct retro_game_info *info)
 		return false;
 	}
 
-   retro_load_game_internal();
+   //trackloader.set_layout_track("d:/temp.bin");
+   bool loaded = roms.load_revb_roms();
 
-	return true;
+   if (!loaded)
+      return false;
+
+   config_init();
+
+   // Load fixed PCM ROM based on config
+   if (config.sound.fix_samples)
+      roms.load_pcm_rom(true);
+
+   // Load patched widescreen tilemaps
+   if (!omusic.load_widescreen_map())
+   {
+      fprintf(stderr, "Unable to load widescreen tilemaps\n");
+   }
+
+   if (!video.init(&roms, &config.video))
+      return false;
+
+   menu = new Menu(&cannonboard);
+
+#ifdef COMPILE_SOUND_CODE
+   audio.init();
+#endif
+   state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+
+   // Initialize controls
+   input.init(config.controls.pad_id,
+         config.controls.keyconfig, config.controls.padconfig, 
+         config.controls.analog,    config.controls.axis, config.controls.asettings);
+
+   if (config.controls.haptic) 
+      config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+
+#ifdef CANNONBOARD
+   // Initialize CannonBoard (For use in original cabinets)
+   if (config.cannonboard.enabled)
+   {
+      cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
+      cannonboard.start();
+   }
+#endif
+
+   // Populate menus
+   menu->populate();
+
+   return true;
 }
 
 bool retro_load_game_special(unsigned game_type,
@@ -518,7 +397,12 @@ bool retro_load_game_special(unsigned game_type,
 
 void retro_unload_game(void)
 {
-   retro_unload_game_internal();
+#ifdef COMPILE_SOUND_CODE
+    audio.stop_audio();
+#endif
+    input.close();
+    forcefeedback::close();
+    delete menu;
 }
 
 unsigned retro_get_region(void)
@@ -564,5 +448,104 @@ void retro_reset(void)
 
 void retro_run(void)
 {
-   retro_run_internal();
+    frame++;
+
+    // Get CannonBoard Packet Data
+    Packet* packet = NULL;
+    
+#ifdef CANNONBOARD
+    if (config.cannonboard.enabled)
+       packet      = cannonboard.get_packet();
+#endif
+
+    // Non standard FPS.
+    // Determine whether to tick the current frame.
+    if (config.fps != 30)
+    {
+        if (config.fps == 60)
+            tick_frame = frame & 1;
+        else if (config.fps == 120)
+            tick_frame = (frame & 3) == 1;
+    }
+
+    process_events();
+
+    if (tick_frame)
+        oinputs.tick(packet); // Do Controls
+    oinputs.do_gear();        // Digital Gear
+
+    switch (state)
+    {
+        case STATE_GAME:
+        {
+            if (input.has_pressed(Input::TIMER))
+                outrun.freeze_timer = !outrun.freeze_timer;
+
+            if (input.has_pressed(Input::PAUSE))
+                pause_engine = !pause_engine;
+
+            if (input.has_pressed(Input::MENU))
+                state = STATE_INIT_MENU;
+
+            if (!pause_engine || input.has_pressed(Input::STEP))
+            {
+                outrun.tick(packet, tick_frame);
+                input.frame_done(); // Denote keys read
+
+                #ifdef COMPILE_SOUND_CODE
+                // Tick audio program code
+                osoundint.tick();
+                // Tick Audio
+                audio.tick();
+                #endif
+            }
+            else
+            {                
+                input.frame_done(); // Denote keys read
+            }
+        }
+        break;
+
+        case STATE_INIT_GAME:
+            if (config.engine.jap && !roms.load_japanese_roms())
+            {
+                state = STATE_QUIT;
+            }
+            else
+            {
+                pause_engine = false;
+                outrun.init();
+                state = STATE_GAME;
+            }
+            break;
+
+        case STATE_MENU:
+        {
+            menu->tick(packet);
+            input.frame_done();
+            #ifdef COMPILE_SOUND_CODE
+            // Tick audio program code
+            osoundint.tick();
+            // Tick Audio
+            audio.tick();
+            #endif
+        }
+        break;
+
+        case STATE_INIT_MENU:
+            oinputs.init();
+            outrun.outputs->init();
+            menu->init();
+            state = STATE_MENU;
+            break;
+    }
+
+#ifdef CANNONBOARD
+    // Write CannonBoard Outputs
+    if (config.cannonboard.enabled)
+        cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
+#endif
+
+    // Draw Video
+    video.draw_frame();  
 }
