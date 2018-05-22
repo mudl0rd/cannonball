@@ -5,29 +5,15 @@ RenderBase::RenderBase()
 {
     screen_pixels = NULL;
 
-    orig_width  = 0;
-    orig_height = 0;
+    orig_width  = 320;
+    orig_height = 240;
 }
 
 // Setup screen size
 bool RenderBase::sdl_screen_size()
 {
-#if 0
-    if (orig_width == 0 || orig_height == 0)
-    {
-        orig_width  = info->current_w; 
-        orig_height = info->current_h;
-    }
-#endif
-
-    /* TODO/FIXME */
-#if 0
     scn_width  = orig_width;
     scn_height = orig_height;
-#else
-    scn_width  = 320;
-    scn_height = 240;
-#endif
 
     return true;
 }

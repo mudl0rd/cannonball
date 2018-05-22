@@ -83,14 +83,6 @@ static void process_events(void)
                 input.handle_joy_axis(&event.jaxis);
                 break;
 
-            case SDL_JOYBUTTONDOWN:
-                input.handle_joy_down(&event.jbutton);
-                break;
-
-            case SDL_JOYBUTTONUP:
-                input.handle_joy_up(&event.jbutton);
-                break;
-
             case SDL_QUIT:
                 // Handle quit requests (like Ctrl-c).
                 state = STATE_QUIT;
@@ -239,7 +231,6 @@ int main(int argc, char* argv[])
         if (!omusic.load_widescreen_map())
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
-        // Initialize SDL Video
         if (!video.init(&roms, &config.video))
             quit_func(1);
 
