@@ -62,11 +62,7 @@ public:
     void close();
 
 #if 0
-    void handle_key_up(SDL_keysym*);
-    void handle_key_down(SDL_keysym*);
     void handle_joy_axis(SDL_JoyAxisEvent*);
-    void handle_joy_down(SDL_JoyButtonEvent*);
-    void handle_joy_up(SDL_JoyButtonEvent*);
 #endif
     void frame_done();
     bool is_pressed(presses p);

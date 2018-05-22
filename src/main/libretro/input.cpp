@@ -64,19 +64,6 @@ void Input::frame_done()
     memcpy(&keys_old, &keys, sizeof(keys));
 }
 
-#if 0
-void Input::handle_key_down(SDL_keysym* keysym)
-{
-    key_press = keysym->sym;
-    handle_key(key_press, true);
-}
-
-void Input::handle_key_up(SDL_keysym* keysym)
-{
-    handle_key(keysym->sym, false);
-}
-#endif
-
 void Input::handle_key(const int key, const bool is_pressed)
 {
     // Redefinable Key Input
@@ -258,18 +245,6 @@ void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
             a_brake = adjusted;
         }
     }
-}
-
-void Input::handle_joy_down(SDL_JoyButtonEvent* evt)
-{
-    // Latch joystick button presses for redefines
-    joy_button = evt->button;
-    handle_joy(evt->button, true);
-}
-
-void Input::handle_joy_up(SDL_JoyButtonEvent* evt)
-{
-    handle_joy(evt->button, false);
 }
 #endif
 
