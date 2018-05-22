@@ -405,7 +405,20 @@ static struct retro_system_av_info g_av_info;
  ************************************/
 
 
-void retro_set_environment(retro_environment_t cb) { environ_cb = cb; }
+void retro_set_environment(retro_environment_t cb)
+{
+	struct retro_log_callback log;
+   bool no_rom                     = true;
+
+   environ_cb = cb;
+
+	if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
+		log_cb = log.log;
+	else
+		log_cb = NULL;
+
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
+}
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
 
@@ -538,17 +551,7 @@ size_t retro_get_memory_size(unsigned id)
 
 void retro_init(void)
 {
-	struct retro_log_callback log;
 	unsigned                  level = 2;
-   bool no_rom                     = true;
-
-   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
-
-	if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
-		log_cb = log.log;
-	else
-		log_cb = NULL;
-
 	environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 }
 
