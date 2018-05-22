@@ -12,8 +12,6 @@ SOURCES_CXX := \
 					$(CORE_DIR)/src/main/libretro/ffeedback.cpp \
 					$(CORE_DIR)/src/main/libretro/audio.cpp \
 					$(CORE_DIR)/src/main/libretro/input.cpp \
-					$(CORE_DIR)/src/main/libretro/renderbase.cpp \
-					$(CORE_DIR)/src/main/libretro/rendersw.cpp \
 					$(CORE_DIR)/src/main/roms.cpp \
 					$(CORE_DIR)/src/main/romloader.cpp \
 					$(CORE_DIR)/src/main/trackloader.cpp \

@@ -68,8 +68,10 @@ public:
     uint32_t read_pal32(uint32_t*);
 
 private:
+#ifndef __LIBRETRO__
     // SDL Renderer
     RenderBase* renderer;
+#endif
     
 	uint8_t palette[S16_PALETTE_ENTRIES * 2]; // 2 Bytes Per Palette Entry
     void refresh_palette(uint32_t);

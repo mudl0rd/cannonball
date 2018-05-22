@@ -35,9 +35,8 @@
 #endif
 
 #elif defined __LIBRETRO__
-
-#include "libretro/rendersw.hpp"
-
+#include <libretro.h>
+extern retro_video_refresh_t       video_cb;
 #else
 #include "sdl/rendersw.hpp"
 #endif //SDL2
@@ -46,6 +45,7 @@ Video video;
 
 Video::Video(void)
 {
+#ifndef __LIBRETRO__
     #ifdef WITH_OPENGL
     renderer     = new RenderGL();
     
@@ -60,6 +60,7 @@ Video::Video(void)
     #else
     renderer     = new RenderSW();
     #endif
+#endif
 
     pixels       = NULL;
     sprite_layer = new hwsprites();
@@ -71,8 +72,10 @@ Video::~Video(void)
     delete sprite_layer;
     delete tile_layer;
     if (pixels) delete[] pixels;
+#ifndef __LIBRETRO__
     renderer->disable();
     delete renderer;
+#endif
 }
 
 int Video::init(Roms* roms, video_settings_t* settings)
@@ -117,7 +120,9 @@ int Video::init(Roms* roms, video_settings_t* settings)
 
 void Video::disable()
 {
+#ifndef __LIBRETRO__
     renderer->disable();
+#endif
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -146,22 +151,29 @@ int Video::set_video_mode(video_settings_t* settings)
         config.s16_height <<= 1;
     }
 
+    fprintf(stderr, "s16 width is now: %d\n", config.s16_width);
+    fprintf(stderr, "s16 height is now: %d\n", config.s16_height);
+
     if (settings->scanlines < 0) settings->scanlines = 0;
     else if (settings->scanlines > 100) settings->scanlines = 100;
 
     if (settings->scale < 1)
         settings->scale = 1;
 
+#ifndef __LIBRETRO__
     renderer->init(config.s16_width, config.s16_height, settings->scale, settings->mode, settings->scanlines);
+#endif
 
     return 1;
 }
 
 void Video::draw_frame()
 {
+#ifndef __LIBRETRO__
     // Renderer Specific Frame Setup
     if (!renderer->start_frame())
         return;
+#endif
 
     if (!enabled)
     {
@@ -182,8 +194,12 @@ void Video::draw_frame()
         tile_layer->render_text_layer(pixels, 1);
      }
 
+#ifdef __LIBRETRO__
+    video_cb(pixels, config.s16_width, config.s16_height, config.s16_width << 1);
+#else
     renderer->draw_frame(pixels);
     renderer->finalize_frame();
+#endif
 }
 
 // ---------------------------------------------------------------------------
@@ -388,5 +404,7 @@ void Video::refresh_palette(uint32_t palAddr)
     if ((a & 0x4000) != 0)
         b |= 1; // b bbbb
 
+#ifndef __LIBRETRO__
     renderer->convert_palette(palAddr, r, g, b);
+#endif
 }
