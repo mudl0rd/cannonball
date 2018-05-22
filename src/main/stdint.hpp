@@ -12,14 +12,10 @@
 
 #pragma once
 
-#ifdef __LIBRETRO__
-#include <stdint.h>
-#else
 #include <boost/static_assert.hpp>
-#endif
 
 /** C99 Standard Naming */
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(__LIBRETRO__)
     typedef signed char int8_t;
     typedef signed short int16_t;
     typedef signed int int32_t;
@@ -33,7 +29,6 @@
     #include <stdint.h>
 #endif
 
-#ifndef __LIBRETRO__
 /* Report typedef errors */
 BOOST_STATIC_ASSERT_MSG(sizeof(int8_t)   == 1, "int8_t is not of the correct size" );
 BOOST_STATIC_ASSERT_MSG(sizeof(int16_t)  == 2, "int16_t is not of the correct size");
@@ -44,4 +39,3 @@ BOOST_STATIC_ASSERT_MSG(sizeof(uint8_t)  == 1, "int8_t is not of the correct siz
 BOOST_STATIC_ASSERT_MSG(sizeof(uint16_t) == 2, "int16_t is not of the correct size");
 BOOST_STATIC_ASSERT_MSG(sizeof(uint32_t) == 4, "int32_t is not of the correct size");
 BOOST_STATIC_ASSERT_MSG(sizeof(uint64_t) == 8, "int64_t is not of the correct size");
-#endif
