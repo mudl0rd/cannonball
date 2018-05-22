@@ -8,6 +8,8 @@
 
 #ifdef SDL2
 #include "sdl2/input.hpp"
+#elif defined __LIBRETRO__
+#include "libretro/input.hpp"
 #else
 #include "sdl/input.hpp"
 #endif

@@ -34,6 +34,10 @@
 #include "sdl2/rendersurface.hpp"
 #endif
 
+#elif defined __LIBRETRO__
+
+#include "libretro/rendersw.hpp"
+
 #else
 #include "sdl/rendersw.hpp"
 #endif //SDL2

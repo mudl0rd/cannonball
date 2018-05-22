@@ -5,6 +5,8 @@
 #ifdef COMPILE_SOUND_CODE
 #ifdef SDL2
 #include "sdl2/audio.hpp"
+#elif defined __LIBRETRO__
+#include "libretro/audio.hpp"
 #else
 #include "sdl/audio.hpp"
 #endif
