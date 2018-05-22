@@ -1,8 +1,5 @@
 /***************************************************************************
-    SDL Audio Code.
-    
-    This is the SDL specific audio code.
-    If porting to a non-SDL platform, you would need to replace this class.
+    Libretro Audio Code.
     
     It takes the output from the PCM and YM chips, mixes them and then
     outputs appropriately.
@@ -18,6 +15,9 @@
 #include "audio.hpp"
 #include "frontend/config.hpp" // fps
 #include "engine/audio/osoundint.hpp"
+#include <libretro.h>
+
+extern retro_audio_sample_batch_t  audio_batch_cb;
 
 #ifdef COMPILE_SOUND_CODE
 
@@ -30,13 +30,7 @@ uint8_t* dsp_buffer;
 static int dsp_buffer_bytes;
 static int dsp_write_pos;
 static int dsp_read_pos;
-static int callbacktick;     // tick at which callback occured
 static int bytes_per_sample; // Number of bytes per sample entry (usually 4 bytes if stereo and 16-bit sound)
-
-// SDL Audio Callback Function
-extern void fill_audio(void *udata, uint8_t *stream, int len);
-
-// ----------------------------------------------------------------------------
 
 Audio::Audio()
 {
@@ -84,8 +78,6 @@ void Audio::clear_buffers()
     dsp_read_pos  = 0;
     int specified_delay_samps = (FREQ * SND_DELAY) / 1000;
     dsp_write_pos = (specified_delay_samps+SAMPLES) * bytes_per_sample;
-    avg_gap = 0.0;
-    gap_est = 0;
 
     for (int i = 0; i < dsp_buffer_bytes; i++)
         dsp_buffer[i] = 0;
@@ -93,8 +85,6 @@ void Audio::clear_buffers()
     uint16_t buffer_size = (FREQ / config.fps) * CHANNELS;
     for (int i = 0; i < buffer_size; i++)
         mix_buffer[i] = 0;
-
-    callbacktick = 0;
 }
 
 void Audio::stop_audio()
@@ -121,11 +111,13 @@ void Audio::resume_audio()
 // Called every frame to update the audio
 void Audio::tick()
 {
+   static unsigned SND_RATE      = 44100;
     int bytes_written = 0;
     int newpos;
     double bytes_per_ms;
 
-    if (!sound_enabled) return;
+    if (!sound_enabled)
+       return;
 
     // Update audio streams from PCM & YM Devices
     osoundint.pcm->stream_update();
@@ -163,22 +155,6 @@ void Audio::tick()
     bytes_per_ms = (bytes_per_sample) * (FREQ/1000.0);
     bytes_written = (BITS == 8 ? samples_written : samples_written*2);
     
-    // this is the gap as of the most recent callback
-    int gap = dsp_write_pos - dsp_read_pos;
-
-#if 0
-    // an estimation of the current gap, adding time since then
-    if (callbacktick != 0)
-        gap_est = (int) (gap - (bytes_per_ms)*(SDL_GetTicks() - callbacktick));
-#endif
-
-    // if there isn't enough room...
-    while (gap + bytes_written > dsp_buffer_bytes) 
-    {
-        //printf("sound buffer overflow:%d %d\n",gap, dsp_buffer_bytes);
-        gap = dsp_write_pos - dsp_read_pos;
-    }
-
     // now we copy the data into the buffer and adjust the positions
     newpos = dsp_write_pos + bytes_written;
     if (newpos/dsp_buffer_bytes == dsp_write_pos/dsp_buffer_bytes) 
@@ -196,52 +172,16 @@ void Audio::tick()
     dsp_write_pos = newpos;
 
     // Sound callback has not yet been called
-    if (callbacktick == 0)
-        dsp_read_pos += bytes_written;
+    dsp_read_pos += bytes_written;
 
     while (dsp_read_pos > dsp_buffer_bytes) 
     {
         dsp_write_pos -= dsp_buffer_bytes;
         dsp_read_pos -= dsp_buffer_bytes;
     }
-}
 
-// Adjust the speed of the emulator, based on audio streaming performance.
-// This ensures that we avoid pops and crackles (in theory). 
-double Audio::adjust_speed()
-{
-    if (!sound_enabled)
-        return 1.0;
-
-    double alpha = 2.0 / (1.0+40.0);
-    int gap_too_small;
-    int gap_too_large;
-    bool inited = false;
-
-    if (!inited) 
-    {
-        inited = true;
-        avg_gap = gap_est;
-    }
-    else 
-    {
-        avg_gap = avg_gap + alpha * (gap_est - avg_gap);
-    }
-
-    gap_too_small = (SND_DELAY * FREQ * bytes_per_sample)/1000;
-    gap_too_large = ((SND_DELAY + SND_SPREAD) * FREQ * bytes_per_sample)/1000;
-    
-    if (avg_gap < gap_too_small) 
-    {
-        double speed = 0.9;
-        return speed;
-    }
-    if (avg_gap > gap_too_large)
-    {
-        double speed = 1.1;
-        return speed;
-    }
-    return 1.0;
+   int audio_frames = SND_RATE / config.fps;
+   audio_batch_cb((int16_t*)mix_buffer, audio_frames);
 }
 
 // Empty Wav Buffer
@@ -249,9 +189,11 @@ static int16_t EMPTY_BUFFER[] = {0, 0, 0, 0};
 
 void Audio::load_wav(const char* filename)
 {
-   /* TODO/FIXME */
+    if (!sound_enabled)
+       return;
+
 #if 0
-    if (sound_enabled)
+   /* TODO/FIXME */
     {
         clear_wav();
 
@@ -324,63 +266,4 @@ void Audio::clear_wav()
     wavfile.pos    = 0;
     wavfile.loaded = false;
 }
-
-// Audio Callback Function
-//
-// Called when the audio device is ready for more data.
-//
-// stream:  A pointer to the audio buffer to be filled
-// len:     The length (in bytes) of the audio buffer
-
-void fill_audio(void *udata, uint8_t *stream, int len)
-{
-    int gap;
-    int newpos;
-    int underflow_amount = 0;
-#define MAX_SAMPLE_SIZE 4
-    static char last_bytes[MAX_SAMPLE_SIZE];
-
-    gap = dsp_write_pos - dsp_read_pos;
-    if (gap < len) 
-    {
-        underflow_amount = len - gap;
-        len = gap;
-    }
-    newpos = dsp_read_pos + len;
-
-    // No Wrap
-    if (newpos/dsp_buffer_bytes == dsp_read_pos/dsp_buffer_bytes) 
-    {
-        memcpy(stream, dsp_buffer + (dsp_read_pos%dsp_buffer_bytes), len);
-    }
-    // Wrap
-    else 
-    {
-        int first_part_size = dsp_buffer_bytes - (dsp_read_pos%dsp_buffer_bytes);
-        memcpy(stream,  dsp_buffer + (dsp_read_pos%dsp_buffer_bytes), first_part_size);
-        memcpy(stream + first_part_size, dsp_buffer, len - first_part_size);
-    }
-    // Save the last sample as we may need it to fill underflow
-    if (gap >= bytes_per_sample) 
-    {
-        memcpy(last_bytes, stream + len - bytes_per_sample, bytes_per_sample);
-    }
-    // Just repeat the last good sample if underflow
-    if (underflow_amount > 0 ) 
-    {
-        int i;
-        for (i = 0; i < underflow_amount/bytes_per_sample; i++) 
-        {
-            memcpy(stream + len +i*bytes_per_sample, last_bytes, bytes_per_sample);
-        }
-    }
-    dsp_read_pos = newpos;
-
-    /* TODO/FIXME */
-#if 0
-    // Record the tick at which the callback occured.
-    callbacktick = SDL_GetTicks();
-#endif
-}
-
 #endif

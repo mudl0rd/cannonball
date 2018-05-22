@@ -78,7 +78,11 @@ static void config_init(void)
     // ------------------------------------------------------------------------
     // Sound Settings
     // ------------------------------------------------------------------------
+#ifdef COMPILE_SOUND_CODE
+    config.sound.enabled     = 1;
+#else
     config.sound.enabled     = 0;
+#endif
     config.sound.advertise   = 1;
     config.sound.preview     = 1;
     config.sound.fix_samples = 1;
@@ -195,7 +199,7 @@ static retro_input_poll_t          input_poll_cb;
 static retro_input_state_t         input_state_cb;
 retro_environment_t         environ_cb;
 static retro_audio_sample_t        audio_cb;
-static retro_audio_sample_batch_t  audio_batch_cb;
+retro_audio_sample_batch_t  audio_batch_cb;
 static struct retro_system_av_info g_av_info;
 
 /************************************
