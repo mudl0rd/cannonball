@@ -72,6 +72,8 @@ public:
     bool is_pressed(presses p);
     bool is_pressed_clear(presses p);
     bool has_pressed(presses p);
+    void handle_key(const int, const bool);
+    void handle_joy(const uint8_t, const bool);
 
 private:
     static const int CENTRE = 0x80;
@@ -87,9 +89,6 @@ private:
     int wheel_zone;
     int wheel_dead;
     int pedals_dead;
-
-    void handle_key(const int, const bool);
-    void handle_joy(const uint8_t, const bool);
 };
 
 extern Input input;

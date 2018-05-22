@@ -47,40 +47,6 @@ Audio cannonball::audio;
 Menu* menu;
 Interface cannonboard;
 
-static void process_events(void)
-{
-#if 0
-    SDL_Event event;
-
-    // Grab all events from the queue.
-    while(SDL_PollEvent(&event))
-    {
-        switch(event.type)
-        {
-            case SDL_KEYDOWN:
-                // Handle key presses.
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                    state = STATE_QUIT;
-                else
-                    input.handle_key_down(&event.key.keysym);
-                break;
-
-            case SDL_KEYUP:
-                input.handle_key_up(&event.key.keysym);
-                break;
-
-            case SDL_JOYAXISMOTION:
-                input.handle_joy_axis(&event.jaxis);
-                break;
-
-            case SDL_QUIT:
-                // Handle quit requests (like Ctrl-c).
-                state = STATE_QUIT;
-                break;
-        }
-    }
-#endif
-}
 
 // Pause Engine
 bool pause_engine;
@@ -444,6 +410,41 @@ void retro_deinit(void)
 
 void retro_reset(void)
 {
+}
+
+struct button_bind
+{
+   unsigned id;
+   unsigned joy_id;
+};
+
+static struct button_bind binds[] = { 
+   {273, RETRO_DEVICE_ID_JOYPAD_UP},
+   {274, RETRO_DEVICE_ID_JOYPAD_DOWN},
+   {276, RETRO_DEVICE_ID_JOYPAD_LEFT},
+   {275, RETRO_DEVICE_ID_JOYPAD_RIGHT},
+   {122, RETRO_DEVICE_ID_JOYPAD_B},       /* Accelerate */
+   {120, RETRO_DEVICE_ID_JOYPAD_Y},       /* Brake */
+   {32,  RETRO_DEVICE_ID_JOYPAD_X},       /* Gear 1 */
+   {32,  RETRO_DEVICE_ID_JOYPAD_A},       /* Gear 2 */
+   {49, RETRO_DEVICE_ID_JOYPAD_START},    /* Start  */
+   {53,  RETRO_DEVICE_ID_JOYPAD_SELECT}, /* Coin  */
+   {304, RETRO_DEVICE_ID_JOYPAD_L},      /* View  */
+   {286, RETRO_DEVICE_ID_JOYPAD_R},      /* Menu  */
+};
+
+static void process_events(void)
+{
+   unsigned i;
+   input_poll_cb();
+
+   for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
+   {
+      if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, binds[i].joy_id))
+         input.handle_key(binds[i].id, true);
+      else
+         input.handle_key(binds[i].id, false);
+   }
 }
 
 void retro_run(void)
