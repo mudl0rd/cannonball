@@ -16,6 +16,10 @@
 #include "stdint.hpp"
 #include "romloader.hpp"
 
+#ifdef __LIBRETRO__
+#include <libretro.h>
+#endif
+
 #ifdef __APPLE__
 #include "CoreFoundation/CoreFoundation.h"
 #endif
@@ -42,7 +46,25 @@ void RomLoader::unload(void)
 
 int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
-
+#if defined(__LIBRETRO__)
+extern retro_environment_t         environ_cb;
+const char *dir = NULL;
+std::string path;
+if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
+{
+#ifdef _WIN32
+   char slash = '\\';
+#else
+   char slash = '/';
+#endif
+   char newpath[1024];
+   newpath[0] = '\0';
+   sprintf(newpath, "%s%c%s%c", dir, slash, "cannonball", slash);
+   path = std::string(newpath);
+}
+else
+    std::string path = "roms/";
+#else
 #ifdef __APPLE__    
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
@@ -56,8 +78,9 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     CFRelease(resourcesURL);
     chdir(bundlepath);
 #endif
-
     std::string path = "roms/";
+#endif
+
     path += std::string(filename);
 
     // Open rom file
