@@ -171,8 +171,10 @@ void Menu::populate()
     menu_cannonboard.push_back(ENTRY_C_CRT);
     menu_cannonboard.push_back(ENTRY_BACK);
 
+#ifndef __LIBRETRO__
     menu_video.push_back(ENTRY_FPS);
     menu_video.push_back(ENTRY_FULLSCREEN);
+#endif
     menu_video.push_back(ENTRY_WIDESCREEN);
     menu_video.push_back(ENTRY_HIRES);
     menu_video.push_back(ENTRY_SCALE);
