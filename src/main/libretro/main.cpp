@@ -47,7 +47,7 @@ Audio cannonball::audio;
 Menu* menu;
 Interface cannonboard;
 
-static void quit_func(int code)
+static void retro_unload_game_internal(void)
 {
 #ifdef COMPILE_SOUND_CODE
     audio.stop_audio();
@@ -95,12 +95,17 @@ static void process_events(void)
 // Pause Engine
 bool pause_engine;
 
-static void tick()
+static void retro_run_internal(void)
 {
     frame++;
 
     // Get CannonBoard Packet Data
-    Packet* packet = config.cannonboard.enabled ? cannonboard.get_packet() : NULL;
+    Packet* packet = NULL;
+    
+#ifdef CANNONBOARD
+    if (config.cannonboard.enabled)
+       packet      = cannonboard.get_packet();
+#endif
 
     // Non standard FPS.
     // Determine whether to tick the current frame.
@@ -183,20 +188,67 @@ static void tick()
             state = STATE_MENU;
             break;
     }
+
+#ifdef CANNONBOARD
     // Write CannonBoard Outputs
     if (config.cannonboard.enabled)
         cannonboard.write(outrun.outputs->dig_out, outrun.outputs->hw_motor_control);
+#endif
 
     // Draw Video
     video.draw_frame();  
 }
 
-static void main_loop()
+static bool retro_load_game_internal(void)
 {
-   while (state != STATE_QUIT)
-      tick();
+    bool loaded = roms.load_revb_roms();
+
+    if (!loaded)
+       return false;
+
+    // Load fixed PCM ROM based on config
+    if (config.sound.fix_samples)
+       roms.load_pcm_rom(true);
+
+    // Load patched widescreen tilemaps
+    if (!omusic.load_widescreen_map())
+    {
+       fprintf(stderr, "Unable to load widescreen tilemaps\n");
+       return false;
+    }
+
+    if (!video.init(&roms, &config.video))
+       return false;
+
+    menu = new Menu(&cannonboard);
+
+#ifdef COMPILE_SOUND_CODE
+    audio.init();
+#endif
+    state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
+
+    // Initialize controls
+    input.init(config.controls.pad_id,
+          config.controls.keyconfig, config.controls.padconfig, 
+          config.controls.analog,    config.controls.axis, config.controls.asettings);
+
+    if (config.controls.haptic) 
+       config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+
+#ifdef CANNONBOARD
+    // Initialize CannonBoard (For use in original cabinets)
+    if (config.cannonboard.enabled)
+    {
+       cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
+       cannonboard.start();
+    }
+#endif
+
+    // Populate menus
+    menu->populate();
 }
 
+#if 0
 int main(int argc, char* argv[])
 {
     menu = new Menu(&cannonboard);
@@ -232,14 +284,14 @@ int main(int argc, char* argv[])
             std::cout << "Unable to load widescreen tilemaps" << std::endl;
 
         if (!video.init(&roms, &config.video))
-            quit_func(1);
+            retro_unload_game_internal();
 
 #ifdef COMPILE_SOUND_CODE
         audio.init();
 #endif
         state = config.menu.enabled ? STATE_INIT_MENU : STATE_INIT_GAME;
 
-        // Initalize controls
+        // Initialize controls
         input.init(config.controls.pad_id,
                    config.controls.keyconfig, config.controls.padconfig, 
                    config.controls.analog,    config.controls.axis, config.controls.asettings);
@@ -247,7 +299,7 @@ int main(int argc, char* argv[])
         if (config.controls.haptic) 
             config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
         
-        // Initalize CannonBoard (For use in original cabinets)
+        // Initialize CannonBoard (For use in original cabinets)
         if (config.cannonboard.enabled)
         {
             cannonboard.init(config.cannonboard.port, config.cannonboard.baud);
@@ -256,9 +308,11 @@ int main(int argc, char* argv[])
 
         // Populate menus
         menu->populate();
-        main_loop();  // Loop until we quit the app
+        while (state != STATE_QUIT) // Loop until we quit the app
+           retro_run_internal();
     }
 
-    quit_func(1);
+    retro_unload_game_internal();
     return 0;
 }
+#endif
