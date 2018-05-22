@@ -25,10 +25,6 @@ protected:
     uint32_t rgb[S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
 
     uint32_t *screen_pixels;
-
-    // Original Screen Width & Height
-    uint16_t orig_width, orig_height;
-
     // --------------------------------------------------------------------------------------------
     // Screen setup properties. Example below: 
     // ________________________
@@ -59,9 +55,6 @@ protected:
     // Offsets (for full-screen mode, where x/y resolution isn't a multiple of the original height)
     uint32_t screen_xoff, screen_yoff;
 
-    // SDL Pixel Format Codes. These differ between platforms.
-    uint8_t  Rshift, Gshift, Bshift;
+    // Pixel Format Codes. These differ between platforms.
     uint32_t Rmask, Gmask, Bmask;
-
-    bool sdl_screen_size();
 };

@@ -4,22 +4,15 @@
 RenderBase::RenderBase()
 {
     screen_pixels = NULL;
-
-    orig_width  = 320;
-    orig_height = 240;
 }
 
-// Setup screen size
-bool RenderBase::sdl_screen_size()
-{
-    scn_width  = orig_width;
-    scn_height = orig_height;
-
-    return true;
-}
+#define RSHIFT 16
+#define GSHIFT 8
+#define BSHIFT 0
+#define ASHIFT 24
 
 // See: SDL_PixelFormat
-#define CURRENT_RGB() (r << Rshift) | (g << Gshift) | (b << Bshift);
+#define CURRENT_RGB() (r << RSHIFT) | (g << GSHIFT) | (b << BSHIFT);
 
 void RenderBase::convert_palette(uint32_t adr, uint32_t r, uint32_t g, uint32_t b)
 {
