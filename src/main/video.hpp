@@ -68,7 +68,10 @@ public:
     uint32_t read_pal32(uint32_t*);
 
 private:
-#ifndef __LIBRETRO__
+#ifdef __LIBRETRO__
+    // Palette Lookup
+    uint32_t rgb[S16_PALETTE_ENTRIES * 3];    // Extended to hold shadow/hilight colours
+#else
     // SDL Renderer
     RenderBase* renderer;
 #endif

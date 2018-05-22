@@ -65,7 +65,7 @@ static void config_init(void)
     // ------------------------------------------------------------------------
    
     config.video.mode       = 0; // Video Mode: Default is Windowed 
-    config.video.scale      = 2; // Video Scale: Default is 2x    
+    config.video.scale      = 1; // Video Scale: Default is 2x    
     config.video.scanlines  = 0; // Scanlines
     config.video.fps        = 2; // Default is 60 fps
     config.video.fps_count  = 0; // FPS Counter

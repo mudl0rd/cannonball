@@ -37,6 +37,10 @@
 #elif defined __LIBRETRO__
 #include <libretro.h>
 extern retro_video_refresh_t       video_cb;
+#define Rshift 11
+#define Gshift 6
+#define Bshift 0
+#define CURRENT_RGB() (r << Rshift) | (g << Gshift) | (b << Bshift);
 #else
 #include "sdl/rendersw.hpp"
 #endif //SDL2
@@ -85,7 +89,7 @@ int Video::init(Roms* roms, video_settings_t* settings)
 
     // Internal pixel array. The size of this is always constant
     if (pixels) delete[] pixels;
-    pixels = new uint16_t[config.s16_width * config.s16_height];
+    pixels = new uint16_t[(config.s16_width * config.s16_height)];
 
     // Convert S16 tiles to a more useable format
     tile_layer->init(roms->tiles.rom, config.video.hires != 0);
@@ -173,6 +177,9 @@ void Video::draw_frame()
     // Renderer Specific Frame Setup
     if (!renderer->start_frame())
         return;
+#else
+    if (!pixels)
+       return;
 #endif
 
     if (!enabled)
@@ -195,7 +202,15 @@ void Video::draw_frame()
      }
 
 #ifdef __LIBRETRO__
-    video_cb(pixels, config.s16_width, config.s16_height, config.s16_width << 1);
+    {
+       uint16_t *spix    = pixels;
+
+       for (int i = 0; i < (config.s16_width * config.s16_height); i++)
+          spix[i] = rgb[spix[i] % (S16_PALETTE_ENTRIES * 3)];
+
+       video_cb(pixels, config.s16_width, config.s16_height,
+             config.s16_width << 1);
+    }
 #else
     renderer->draw_frame(pixels);
     renderer->finalize_frame();
@@ -397,14 +412,25 @@ void Video::refresh_palette(uint32_t palAddr)
     uint32_t r = (a & 0x000f) << 1; // r rrr0
     uint32_t g = (a & 0x00f0) >> 3; // g ggg0
     uint32_t b = (a & 0x0f00) >> 7; // b bbb0
+
+#ifdef __LIBRETRO__
+    palAddr >>= 1;
+
+    rgb[palAddr] = CURRENT_RGB();
+
+    r = r * 202 / 256;
+    g = g * 202 / 256;
+    b = b * 202 / 256;
+
+    rgb[palAddr + S16_PALETTE_ENTRIES] =
+       rgb[palAddr + (S16_PALETTE_ENTRIES * 2)] = CURRENT_RGB();
+#else
     if ((a & 0x1000) != 0)
         r |= 1; // r rrrr
     if ((a & 0x2000) != 0)
         g |= 1; // g gggg
     if ((a & 0x4000) != 0)
         b |= 1; // b bbbb
-
-#ifndef __LIBRETRO__
     renderer->convert_palette(palAddr, r, g, b);
 #endif
 }
