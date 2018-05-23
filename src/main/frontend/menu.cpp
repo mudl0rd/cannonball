@@ -483,7 +483,9 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_ABOUT))
                 set_menu(&menu_about);
             else if (SELECTED(ENTRY_EXIT))
+            {
                 cannonball::state = cannonball::STATE_QUIT;
+            }
         }
         else if (menu_selected == &menu_gamemodes)
         {

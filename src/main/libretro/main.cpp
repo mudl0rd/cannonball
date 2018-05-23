@@ -542,6 +542,10 @@ void retro_run(void)
             menu->init();
             state = STATE_MENU;
             break;
+
+        case STATE_QUIT:
+            environ_cb(RETRO_ENVIRONMENT_SHUTDOWN, NULL);
+            return;
     }
 
 #ifdef CANNONBOARD
