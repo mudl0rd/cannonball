@@ -171,8 +171,8 @@ void Menu::populate()
     menu_cannonboard.push_back(ENTRY_C_CRT);
     menu_cannonboard.push_back(ENTRY_BACK);
 
-#ifndef __LIBRETRO__
     menu_video.push_back(ENTRY_FPS);
+#ifndef __LIBRETRO__
     menu_video.push_back(ENTRY_FULLSCREEN);
 #endif
     menu_video.push_back(ENTRY_WIDESCREEN);
@@ -638,7 +638,13 @@ void Menu::tick_menu()
             else if (SELECTED(ENTRY_FPS))
             {
                 if (++config.video.fps > 2)
+                {
+#ifdef __LIBRETRO__
+                    config.video.fps = 1;
+#else
                     config.video.fps = 0;
+#endif
+                }
                 config.set_fps(config.video.fps);
             }
             else if (SELECTED(ENTRY_BACK))
@@ -839,7 +845,11 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_FPS))
             {               
                 if (config.video.fps == 0)      s = "30 FPS";
+#ifdef __LIBRETRO__
+                else if (config.video.fps == 1) s = "30 FPS";
+#else
                 else if (config.video.fps == 1) s = "ORIGINAL";
+#endif
                 else if (config.video.fps == 2) s = "60 FPS";
                 set_menu_text(ENTRY_FPS, s);
             }
