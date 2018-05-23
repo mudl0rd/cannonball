@@ -163,7 +163,7 @@ static void config_init(void)
     config.engine.dip_time    &= 3;
     config.engine.dip_traffic &= 3;
 
-    config.engine.freeplay      = 1;
+    config.engine.freeplay      = 0;
     config.engine.jap           = 0; /* japanese tracks */
     config.engine.prototype     = 0;
     
