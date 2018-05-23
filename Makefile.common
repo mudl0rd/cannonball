@@ -2,6 +2,7 @@ INCFLAGS := -I$(CORE_DIR)/src/main \
 			   -I$(CORE_DIR)/src/main/libretro \
 				-I$(CORE_DIR)/deps
 
+FLAGS := -D__LIBRETRO__
 #FLAGS += -DCANNONBOARD
 FLAGS += -DCOMPILE_SOUND_CODE
 
