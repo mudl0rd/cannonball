@@ -413,6 +413,12 @@ void Video::refresh_palette(uint32_t palAddr)
     uint32_t g = (a & 0x00f0) >> 3; // g ggg0
     uint32_t b = (a & 0x0f00) >> 7; // b bbb0
 
+    if ((a & 0x1000) != 0)
+        r |= 1; // r rrrr
+    if ((a & 0x2000) != 0)
+        g |= 1; // g gggg
+    if ((a & 0x4000) != 0)
+        b |= 1; // b bbbb
 #ifdef __LIBRETRO__
     palAddr >>= 1;
 
@@ -425,12 +431,6 @@ void Video::refresh_palette(uint32_t palAddr)
     rgb[palAddr + S16_PALETTE_ENTRIES] =
        rgb[palAddr + (S16_PALETTE_ENTRIES * 2)] = CURRENT_RGB();
 #else
-    if ((a & 0x1000) != 0)
-        r |= 1; // r rrrr
-    if ((a & 0x2000) != 0)
-        g |= 1; // g gggg
-    if ((a & 0x4000) != 0)
-        b |= 1; // b bbbb
     renderer->convert_palette(palAddr, r, g, b);
 #endif
 }
