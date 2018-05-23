@@ -103,6 +103,7 @@ const static char* ENTRY_DSTEER     = "DIGITAL STEER SPEED ";
 const static char* ENTRY_DPEDAL     = "DIGITAL PEDAL SPEED ";
 
 // Game Engine Menu
+const static char* ENTRY_FREEPLAY   = "FREE PLAY ";
 const static char* ENTRY_TRACKS     = "TRACKS ";
 const static char* ENTRY_TIME       = "TIME ";
 const static char* ENTRY_TRAFFIC    = "TRAFFIC ";
@@ -203,6 +204,9 @@ void Menu::populate()
     menu_controls.push_back(ENTRY_BACK);
 
     menu_engine.push_back(ENTRY_TRACKS);
+#ifdef __LIBRETRO__
+    menu_engine.push_back(ENTRY_FREEPLAY);
+#endif
     menu_engine.push_back(ENTRY_TIME);
     menu_engine.push_back(ENTRY_TRAFFIC);
     menu_engine.push_back(ENTRY_OBJECTS);
@@ -733,6 +737,12 @@ void Menu::tick_menu()
             {
                 config.engine.jap = !config.engine.jap;
             }
+#ifdef __LIBRETRO__
+            else if (SELECTED(ENTRY_FREEPLAY))
+            {
+               config.engine.freeplay = !config.engine.freeplay;
+            }
+#endif
             else if (SELECTED(ENTRY_TIME))
             {
                 if (config.engine.dip_time == 3)
@@ -895,6 +905,10 @@ void Menu::refresh_menu()
         {
             if (SELECTED(ENTRY_TRACKS))
                 set_menu_text(ENTRY_TRACKS, config.engine.jap ? "JAPAN" : "WORLD");
+#ifdef __LIBRETRO__
+            if (SELECTED(ENTRY_FREEPLAY))
+                set_menu_text(ENTRY_FREEPLAY, config.engine.freeplay ? "ON" : "OFF");
+#endif
             else if (SELECTED(ENTRY_TIME))
             {
                 if (config.engine.freeze_timer)       s = "INFINITE";
