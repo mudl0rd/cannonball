@@ -194,8 +194,10 @@ void Menu::populate()
 
     menu_controls.push_back(ENTRY_GEAR);
     if (input.gamepad) menu_controls.push_back(ENTRY_ANALOG);
+#ifndef __LIBRETRO__
     menu_controls.push_back(ENTRY_REDEFKEY);
     if (input.gamepad) menu_controls.push_back(ENTRY_REDEFJOY);
+#endif
     menu_controls.push_back(ENTRY_DSTEER);
     menu_controls.push_back(ENTRY_DPEDAL);
     menu_controls.push_back(ENTRY_BACK);
