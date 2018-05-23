@@ -184,8 +184,6 @@ static void config_init(void)
     config.ttrial.traffic = 3;
 
     config.cont_traffic   = 3;
-
-    config.fps     = 60;
 }
 
 //
