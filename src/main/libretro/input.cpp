@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <cstdlib> // abs
+#include <string.h>
 #include "input.hpp"
 
 Input input;

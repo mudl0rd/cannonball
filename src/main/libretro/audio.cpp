@@ -12,6 +12,7 @@
 ***************************************************************************/
 
 #include <iostream>
+#include <string.h>
 #include "audio.hpp"
 #include "frontend/config.hpp" // fps
 #include "engine/audio/osoundint.hpp"
