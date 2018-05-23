@@ -299,7 +299,7 @@ bool retro_load_game(const struct retro_game_info *info)
 	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
 		if (log_cb)
-			log_cb(RETRO_LOG_INFO, "[RE]: RGB565 is not supported.\n");
+			log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
 		return false;
 	}
 
@@ -318,7 +318,8 @@ bool retro_load_game(const struct retro_game_info *info)
    // Load patched widescreen tilemaps
    if (!omusic.load_widescreen_map())
    {
-      fprintf(stderr, "Unable to load widescreen tilemaps\n");
+      if (log_cb)
+         log_cb(RETRO_LOG_WARN, "[Cannonball]: Unable to load widescreen tilemaps.\n");
    }
 
    if (!video.init(&roms, &config.video))
