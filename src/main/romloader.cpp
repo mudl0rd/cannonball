@@ -18,9 +18,7 @@
 
 #ifdef __LIBRETRO__
 #include <libretro.h>
-#endif
-
-#ifdef __APPLE__
+#elif defined(__APPLE__)
 #include "CoreFoundation/CoreFoundation.h"
 #endif
 
@@ -65,7 +63,7 @@ if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &dir) && dir)
 else
     std::string path = "roms/";
 #else
-#ifdef __APPLE__    
+#if defined(__APPLE__) && !defined(__LIBRETRO__)
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
     char bundlepath[PATH_MAX];
@@ -122,7 +120,7 @@ else
 // Load Binary File (LayOut Levels, Tilemap Data etc.)
 int RomLoader::load_binary(const char* filename)
 {
-#ifdef __APPLE__    
+#if defined(__APPLE__) && !defined(__LIBRETRO__)
     CFBundleRef mainBundle = CFBundleGetMainBundle();
     CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
     char bundlepath[PATH_MAX];
