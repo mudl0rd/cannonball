@@ -155,9 +155,6 @@ int Video::set_video_mode(video_settings_t* settings)
         config.s16_height <<= 1;
     }
 
-    fprintf(stderr, "s16 width is now: %d\n", config.s16_width);
-    fprintf(stderr, "s16 height is now: %d\n", config.s16_height);
-
     if (settings->scanlines < 0) settings->scanlines = 0;
     else if (settings->scanlines > 100) settings->scanlines = 100;
 
