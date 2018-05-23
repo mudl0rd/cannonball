@@ -110,7 +110,9 @@ struct engine_settings_t
     bool fix_bugs_backup;
     bool fix_timer;
     bool layout_debug;
+    bool force_ai;
     int new_attract;
+    
 };
 
 class Config
@@ -138,7 +140,7 @@ public:
 
     // Continuous Mode: Traffic Setting
     int cont_traffic;
-    
+
     Config(void);
     ~Config(void);
 

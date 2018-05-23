@@ -178,7 +178,8 @@ void Config::load(const std::string &filename)
     engine.fix_bugs        = pt_config.get("engine.fix_bugs",     1) != 0;
     engine.fix_timer       = pt_config.get("engine.fix_timer",    0) != 0;
     engine.layout_debug    = pt_config.get("engine.layout_debug", 0) != 0;
-    engine.new_attract     = pt_config.get("engine.new_attract", 1) != 0;
+    engine.new_attract     = pt_config.get("engine.new_attract",  1) != 0;
+    engine.force_ai        = pt_config.get("engine.force_ai",     0) != 0;
 
     // ------------------------------------------------------------------------
     // Time Trial Mode
@@ -188,6 +189,7 @@ void Config::load(const std::string &filename)
     ttrial.traffic = pt_config.get("time_trial.traffic", 3);
 
     cont_traffic   = pt_config.get("continuous.traffic", 3);
+
 }
 
 bool Config::save(const std::string &filename)
@@ -230,6 +232,7 @@ bool Config::save(const std::string &filename)
     pt_config.put("controls.padconfig.view",  controls.padconfig[7]);
     pt_config.put("controls.analog.<xmlattr>.enabled", controls.analog);
 
+    pt_config.put("engine.force_ai", engine.force_ai);
     pt_config.put("engine.time", engine.freeze_timer ? 4 : engine.dip_time);
     pt_config.put("engine.traffic", engine.disable_traffic ? 4 : engine.dip_traffic);
     pt_config.put("engine.japanese_tracks", engine.jap);
