@@ -63,16 +63,16 @@ static void config_init(void)
     // ------------------------------------------------------------------------
     // Video Settings
     // ------------------------------------------------------------------------
-   
-    config.video.mode       = 0; // Video Mode: Default is Windowed 
-    config.video.scale      = 1; // Video Scale: Default is 2x    
+
+    config.video.mode       = 0; // Video Mode: Default is Windowed
+    config.video.scale      = 1; // Video Scale: Default is 2x
     config.video.scanlines  = 0; // Scanlines
     config.video.fps        = 2; // Default is 60 fps
     config.video.fps_count  = 0; // FPS Counter
     config.video.widescreen = 1; // Enable Widescreen Mode
     config.video.hires      = 0; // Hi-Resolution Mode
     config.video.filtering  = 0; // Open GL Filtering Mode
-          
+
     config.set_fps(config.video.fps);
 
     // ------------------------------------------------------------------------
@@ -145,7 +145,7 @@ static void config_init(void)
     config.controls.asettings[0]  = 75; /* wheel zone */
     config.controls.asettings[1]  = 0; /* wheel dead */
     config.controls.asettings[2]  = 0; /* pedals dead */
-    
+
     config.controls.haptic        = 0;
     config.controls.max_force     = 9000;
     config.controls.min_force     = 8500;
@@ -157,7 +157,7 @@ static void config_init(void)
 
     config.engine.dip_time      = 0;
     config.engine.dip_traffic   = 1;
-    
+
     config.engine.freeze_timer    = config.engine.dip_time == 4;
     config.engine.disable_traffic = config.engine.dip_traffic == 4;
     config.engine.dip_time    &= 3;
@@ -166,7 +166,7 @@ static void config_init(void)
     config.engine.freeplay      = 0;
     config.engine.jap           = 0; /* japanese tracks */
     config.engine.prototype     = 0;
-    
+
     // Additional Level Objects
     config.engine.level_objects   = 1;
     config.engine.randomgen       = 1;
@@ -200,6 +200,8 @@ static retro_audio_sample_t        audio_cb;
 retro_audio_sample_batch_t  audio_batch_cb;
 static struct retro_system_av_info g_av_info;
 
+
+
 /************************************
  * libretro implementation
  ************************************/
@@ -207,15 +209,15 @@ static struct retro_system_av_info g_av_info;
 
 void retro_set_environment(retro_environment_t cb)
 {
-	struct retro_log_callback log;
-   bool no_rom                     = true;
+    struct retro_log_callback log;
+    bool no_rom                     = true;
 
-   environ_cb = cb;
+    environ_cb = cb;
 
-	if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
-		log_cb = log.log;
-	else
-		log_cb = NULL;
+    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
+        log_cb = log.log;
+    else
+        log_cb = NULL;
 
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 }
@@ -231,27 +233,27 @@ void retro_set_input_poll(retro_input_poll_t cb) { input_poll_cb = cb; }
 void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 
 void retro_get_system_info(struct retro_system_info *info) {
-	memset(info, 0, sizeof(*info));
-	info->library_name     = "Cannonball";
-	info->library_version  = "git";
-	info->need_fullpath    = false;
-	info->valid_extensions = NULL; 
+    memset(info, 0, sizeof(*info));
+    info->library_name     = "Cannonball";
+    info->library_version  = "git";
+    info->need_fullpath    = false;
+    info->valid_extensions = NULL; 
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info) {
-	memset(info, 0, sizeof(*info));
-	info->timing.fps            = 60.0;
-	info->timing.sample_rate    = 44100;
-	info->geometry.base_width   = S16_WIDTH;
-	info->geometry.base_height  = S16_HEIGHT;
-	info->geometry.max_width    = S16_WIDTH << 1;
-	info->geometry.max_height   = S16_WIDTH << 1;
-	info->geometry.aspect_ratio = 16.0f / 9.0f;
+    memset(info, 0, sizeof(*info));
+    info->timing.fps            = 60.0;
+    info->timing.sample_rate    = 44100;
+    info->geometry.base_width   = S16_WIDTH;
+    info->geometry.base_height  = S16_HEIGHT;
+    info->geometry.max_width    = S16_WIDTH << 1;
+    info->geometry.max_height   = S16_WIDTH << 1;
+    info->geometry.aspect_ratio = 16.0f / 9.0f;
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device) {
-	(void) port;
-	(void) device;
+    (void) port;
+    (void) device;
 }
 
 size_t retro_serialize_size(void) {
@@ -272,40 +274,40 @@ void retro_cheat_reset(void) {}
 
 void retro_cheat_set(unsigned index, bool enabled, const char *code)
 {
-	(void) index;
-	(void) enabled;
-	(void) code;
+    (void) index;
+    (void) enabled;
+    (void) code;
 }
 
 bool retro_load_game(const struct retro_game_info *info)
 {
-	enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
+    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
 
-	struct retro_input_descriptor desc[] = {
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
-		{0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
+    struct retro_input_descriptor desc[] = {
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
 
-		{0},
-	};
+        {0},
+    };
 
-	environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-	if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
-		if (log_cb)
-			log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
-		return false;
-	}
+        if (log_cb)
+            log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
+        return false;
+    }
 
    //trackloader.set_layout_track("d:/temp.bin");
    bool loaded = roms.load_revb_roms();
@@ -362,10 +364,10 @@ bool retro_load_game(const struct retro_game_info *info)
 bool retro_load_game_special(unsigned game_type,
       const struct retro_game_info *info, size_t num_info)
 {
-	(void) game_type;
-	(void) info;
-	(void) num_info;
-	return false;
+    (void) game_type;
+    (void) info;
+    (void) num_info;
+    return false;
 }
 
 void retro_unload_game(void)
@@ -380,12 +382,12 @@ void retro_unload_game(void)
 
 unsigned retro_get_region(void)
 {
-	return RETRO_REGION_NTSC;
+    return RETRO_REGION_NTSC;
 }
 
 unsigned retro_api_version(void)
 {
-	return RETRO_API_VERSION;
+    return RETRO_API_VERSION;
 }
 
 void *retro_get_memory_data(unsigned id)
@@ -407,8 +409,8 @@ size_t retro_get_memory_size(unsigned id)
 
 void retro_init(void)
 {
-	unsigned                  level = 2;
-	environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
+    unsigned                  level = 2;
+    environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
 }
 
 void retro_deinit(void)
