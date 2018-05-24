@@ -186,26 +186,23 @@ static void config_init(void)
     config.cont_traffic   = 3;
 }
 
-//
+
 //  libretro.cpp
 
 #include <libretro.h>
+#include <compat/strl.h>
+#include <file/file_path.h>
 
 static retro_log_printf_t          log_cb;
-retro_video_refresh_t       video_cb;
+retro_video_refresh_t              video_cb;
 static retro_input_poll_t          input_poll_cb;
 static retro_input_state_t         input_state_cb;
-retro_environment_t         environ_cb;
+retro_environment_t                environ_cb;
 static retro_audio_sample_t        audio_cb;
-retro_audio_sample_batch_t  audio_batch_cb;
+retro_audio_sample_batch_t         audio_batch_cb;
 static struct retro_system_av_info g_av_info;
 
-
-
-/************************************
- * libretro implementation
- ************************************/
-
+char rom_path[1024];
 
 void retro_set_environment(retro_environment_t cb)
 {
@@ -236,8 +233,8 @@ void retro_get_system_info(struct retro_system_info *info) {
     memset(info, 0, sizeof(*info));
     info->library_name     = "Cannonball";
     info->library_version  = "git";
-    info->need_fullpath    = false;
-    info->valid_extensions = NULL; 
+    info->need_fullpath    = true;
+    info->valid_extensions = "game"; 
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info) {
@@ -308,6 +305,9 @@ bool retro_load_game(const struct retro_game_info *info)
             log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
         return false;
     }
+
+    fill_pathname_basedir(rom_path, info->path, sizeof(rom_path));
+    log_cb(RETRO_LOG_INFO, "Rom directory: %s\n", rom_path);
 
    //trackloader.set_layout_track("d:/temp.bin");
    bool loaded = roms.load_revb_roms();
