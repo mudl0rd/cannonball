@@ -1,4 +1,4 @@
-LIBRETRO_COMM_DIR := $(CORE_DIR)/src/main/libretro/libretro-comm
+LIBRETRO_COMM_DIR := $(CORE_DIR)/src/main/libretro/libretro-common
 INCFLAGS := -I$(CORE_DIR)/src/main \
 				-I$(CORE_DIR)/src/main/libretro \
 				-I$(LIBRETRO_COMM_DIR)/include \
@@ -15,7 +15,7 @@ else
 SOURCES_C +=   $(LIBRETRO_COMM_DIR)/file/file_path.c \
 					$(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
 					$(LIBRETRO_COMM_DIR)/compat/compat_strcasestr.c \
-					$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c \
+					$(LIBRETRO_COMM_DIR)/encodings/encoding_utf.c
 endif
 
 SOURCES_CXX := \
