@@ -123,7 +123,7 @@ else ifeq ($(platform), qnx)
 else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
    TARGET := $(TARGET_NAME)_libretro_ps3.a
    STATIC_LINKING = 1
-   ENDIANNESS_DEFINES := -DMSB_FIRST -DBYTE_ORDER=BIG_ENDIAN
+   ENDIANNESS_DEFINES := -DMSB_FIRST -DBYTE_ORDER=BIG_ENDIAN -D__CELLOS_LV2__
 
    # sncps3
    ifneq (,$(findstring sncps3,$(platform)))
@@ -142,6 +142,7 @@ else ifneq (,$(filter $(platform), ps3 sncps3 psl1ght))
       AR = $(CELL_SDK)/host-win32/ppu/bin/ppu-lv2-ar.exe
       FLAGS += -DARCH_POWERPC_ALTIVEC
       OLD_GCC := 1
+      INCFLAGS_PLATFORM := -I./deps/ps3
 
    # Lightweight PS3 Homebrew SDK
    else ifneq (,$(findstring psl1ght,$(platform)))

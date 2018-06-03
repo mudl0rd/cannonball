@@ -18,6 +18,10 @@
 #include "engine/audio/osoundint.hpp"
 #include <libretro.h>
 
+#ifdef __CELLOS_LV2__
+#define free std::free
+#endif
+
 extern retro_audio_sample_batch_t  audio_batch_cb;
 
 #ifdef COMPILE_SOUND_CODE
