@@ -215,7 +215,7 @@ void retro_set_environment(retro_environment_t cb)
       { "cannonball_menu_road_scroll_speed", "Menu Road Scroll Speed; 50|60|70|80|90|100|150|200|300|400|500|5|10|15|20|25|30|40" },
       { "cannonball_video_widescreen", "Video Widescreen Mode; ON|OFF" },
       { "cannonball_video_hires", "Video High-Resolution Mode; OFF|ON" },
-      { "cannonball_video_fps", "Video Framerate; Smooth (60)|Original (60/30)|Low (30)" },
+/*      { "cannonball_video_fps", "Video Framerate; Smooth (60)|Original (60/30)|Low (30)" }, */
       { "cannonball_sound_advertise", "Advertise Sound; ON|OFF" },
       { "cannonball_sound_preview", "Preview Music; ON|OFF" },
       { "cannonball_sound_fix_samples", "Fix Samples (use opr-10188.71f); ON|OFF" },
@@ -326,7 +326,7 @@ static void update_variables(void)
          geometry_update = true;
       }
    }
-
+/*
    var.key = "cannonball_video_fps";
    var.value = NULL;
 
@@ -347,7 +347,7 @@ static void update_variables(void)
          geometry_update = true;
       }
    }
-
+*/
    var.key = "cannonball_sound_advertise";
    var.value = NULL;
 
@@ -599,7 +599,7 @@ static void update_variables(void)
       video.disable();
       video.init(&roms, &config.video);
       video.sprite_layer->set_x_clip(false);
-      config.set_fps(config.video.fps);
+/*      config.set_fps(config.video.fps); */
       update_geometry();
    }
 }
