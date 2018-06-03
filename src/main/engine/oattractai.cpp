@@ -45,6 +45,10 @@
 #include "engine/ostats.hpp"
 #include "engine/otraffic.hpp"
 
+#ifdef __CELLOS_LV2__
+#define srand std::srand
+#endif
+
 OAttractAI oattractai;
 
 OAttractAI::OAttractAI(void)

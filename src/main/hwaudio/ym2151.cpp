@@ -16,6 +16,15 @@
 
 #include "hwaudio/ym2151.hpp"
 
+#ifdef __CELLOS_LV2__
+#define memset std::memset
+#define pow std::pow
+#define floor std::floor
+#define sin std::sin
+#define log std::log
+#endif
+
+
 signed int     chanout[8];
 signed int     m2,c1,c2;            /* Phase Modulation input for operators 2,3,4  */
 signed int     mem;                 /* one sample delay memory */

@@ -22,6 +22,11 @@
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
 
+#ifdef __CELLOS_LV2__
+#define remove std::remove
+#endif
+
+
 // api change in boost 1.56
 #include <boost/version.hpp>
 #if (BOOST_VERSION >= 105600)

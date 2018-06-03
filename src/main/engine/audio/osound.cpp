@@ -19,6 +19,10 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 #include <cstring> // For memset on GCC
 #include "engine/audio/osound.hpp"
 
+#ifdef __CELLOS_LV2__
+#define memcpy std::memcpy
+#endif
+
 // Use YM2151 Timing
 #define TIMER_CODE 1
 
