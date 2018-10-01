@@ -7,6 +7,7 @@
 
 // Error reporting
 #include <iostream>
+#include <stdlib.h>
 #include <string.h>
 
 #include "input.hpp"
