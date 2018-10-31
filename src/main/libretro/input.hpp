@@ -61,9 +61,8 @@ public:
     void init(int, int*, int*, const int, int*, int*);
     void close();
 
-#if 0
-    void handle_joy_axis(SDL_JoyAxisEvent*);
-#endif
+
+    void handle_joy_axis(int, int, int);
     void frame_done();
     bool is_pressed(presses p);
     bool is_pressed_clear(presses p);

@@ -31,6 +31,7 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
     this->pedals_dead = analog_settings[2];
+    this->gamepad     = true;
 
     a_wheel = CENTRE;
 }
@@ -127,127 +128,48 @@ void Input::handle_key(const int key, const bool is_pressed)
 #endif
 }
 
-#if 0
-void Input::handle_joy_axis(SDL_JoyAxisEvent* evt)
+
+void Input::handle_joy_axis(int wheel_axis, int accel_axis, int brake_axis)
 {
-    int16_t value = evt->value;
+   // Analog Controls
+   //std::cout << "Axis: " << (int) evt->axis << " Value: " << (int) evt->value << std::endl;
 
-    // Digital Controls
-    if (!analog)
-    {
-        // X-Axis
-        if (evt->axis == 0)
-        {
-            // Neural
-            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
-            {
-                keys[LEFT]  = false;
-                keys[RIGHT] = false;
-            }
-            else if (value < 0)
-            {
-                keys[LEFT] = true;
-            }
-            else if (value > 0)
-            {
-                keys[RIGHT] = true;
-            }
-        }
-        // Y-Axis
-        else if (evt->axis == 1)
-        {
-            // Neural
-            if ( (value > -DIGITAL_DEAD ) && (value < DIGITAL_DEAD ) )
-            {
-                keys[UP]  = false;
-                keys[DOWN] = false;
-            }
-            else if (value < 0)
-            {
-                keys[UP] = true;
-            }
-            else if (value > 0)
-            {
-                keys[DOWN] = true;
-            }
-        }
-    }
-    // Analog Controls
-    else
-    {
-        //std::cout << "Axis: " << (int) evt->axis << " Value: " << (int) evt->value << std::endl;
+   // Steering
+   // OutRun requires values between 0x48 and 0xb8.
+   int percentage_adjust = ((wheel_zone) << 8) / 100;         
+   int adjustedw = wheel_axis + ((wheel_axis * percentage_adjust) >> 8);
 
-        // Steering
-        // OutRun requires values between 0x48 and 0xb8.
-        if (evt->axis == axis[0])
-        {
-            int percentage_adjust = ((wheel_zone) << 8) / 100;         
-            int adjusted = value + ((value * percentage_adjust) >> 8);
-            
-            // Make 0 hard left, and 0x80 centre value.
-            adjusted = ((adjusted + (1 << 15)) >> 9);
-            adjusted += 0x40; // Centre
+   // Make 0 hard left, and 0x80 centre value.
+   adjustedw = ((adjustedw + (1 << 15)) >> 9);
+   adjustedw += 0x40; // Centre
 
-            if (adjusted < 0x40)
-                adjusted = 0x40;
-            else if (adjusted > 0xC0)
-                adjusted = 0xC0;
+   if (adjustedw < 0x40)
+       adjustedw = 0x40;
+   else if (adjustedw > 0xC0)
+       adjustedw = 0xC0;
 
-            // Remove Dead Zone
-            if (wheel_dead)
-            {
-                if (std::abs(CENTRE - adjusted) <= wheel_dead)
-                    adjusted = CENTRE;
-            }
+   // Remove Dead Zone
+   if (wheel_dead)
+   {
+       if (std::abs(CENTRE - adjustedw) <= wheel_dead)
+           adjustedw = CENTRE;
+   }
+   //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjustedw << std::endl;
+   a_wheel = adjustedw;
 
-            //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjusted << std::endl;
-            a_wheel = adjusted;
-        }
-        // Accelerator and Brake [Combined Axis]
-        else if (axis[1] == axis[2] && (evt->axis == axis[1] || evt->axis == axis[2]))
-        {
-            // Accelerator
-            if (value < -pedals_dead)
-            {
-                // Scale input to be in the range of 0 to 0x7F
-                value = -value;
-                int adjusted = value / 258;
-                adjusted += (adjusted >> 2);
-                a_accel = adjusted;
-            }
-            // Brake
-            else if (value > pedals_dead)
-            {
-                // Scale input to be in the range of 0 to 0x7F
-                int adjusted = value / 258;
-                adjusted += (adjusted >> 2);
-                a_brake = adjusted;
-            }
-            else
-            {
-                a_accel = 0;
-                a_brake = 0;
-            }
-        }
-        // Accelerator [Single Axis]
-        else if (evt->axis == axis[1])
-        {
-            // Scale input to be in the range of 0 to 0x7F
-            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);           
-            adjusted += (adjusted >> 2);
-            a_accel = adjusted;
-        }
-        // Brake [Single Axis]
-        else if (evt->axis == axis[2])
-        {
-            // Scale input to be in the range of 0 to 0x7F
-            int adjusted = 0x7F - ((value + (1 << 15)) >> 9);
-            adjusted += (adjusted >> 2);
-            a_brake = adjusted;
-        }
-    }
+   // Accelerator [Single Axis]
+   // Scale input to be in the range of 0 to 0x7F
+   int adjusteda = 0x7F - ((-accel_axis + (1 << 15)) >> 9);           
+   adjusteda += (adjusteda >> 2);
+   // Accelerates slightly for an unknown reason, add a deadzone
+   a_accel = (adjusteda < 80) ? 0 : adjusteda;
+
+   // Brake [Single Axis]
+   // Scale input to be in the range of 0 to 0x7F
+   int adjustedb = 0x7F - ((-brake_axis + (1 << 15)) >> 9);
+   adjustedb += (adjustedb >> 2);
+   a_brake = adjustedb;
 }
-#endif
 
 void Input::handle_joy(const uint8_t button, const bool is_pressed)
 {

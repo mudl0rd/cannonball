@@ -138,7 +138,7 @@ static void config_init(void)
     config.controls.padconfig[5]  = 4; /* coin */
     config.controls.padconfig[6]  = 5; /* padconfig menu */
     config.controls.padconfig[7]  = 6; /* padconfig view */
-    config.controls.analog        = 0;
+    config.controls.analog        = 1;
     config.controls.pad_id        = 0; /* pad_id */
     config.controls.axis[0]       = 0; /* wheel */
     config.controls.axis[1]       = 2; /* accelerate */
@@ -669,6 +669,8 @@ bool retro_load_game(const struct retro_game_info *info)
         {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
         {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
         {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
+        {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X, "Analog X" },
+        {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y, "Analog Y" },
 
         {0},
     };
@@ -810,11 +812,11 @@ static struct button_bind binds[] = {
    {274, RETRO_DEVICE_ID_JOYPAD_DOWN},
    {276, RETRO_DEVICE_ID_JOYPAD_LEFT},
    {275, RETRO_DEVICE_ID_JOYPAD_RIGHT},
-   {122, RETRO_DEVICE_ID_JOYPAD_B},       /* Accelerate */
-   {120, RETRO_DEVICE_ID_JOYPAD_Y},       /* Brake */
-   {32,  RETRO_DEVICE_ID_JOYPAD_X},       /* Gear 1 */
-   {32,  RETRO_DEVICE_ID_JOYPAD_A},       /* Gear 2 */
-   {49, RETRO_DEVICE_ID_JOYPAD_START},    /* Start  */
+   {122, RETRO_DEVICE_ID_JOYPAD_B},      /* Accelerate */
+   {120, RETRO_DEVICE_ID_JOYPAD_Y},      /* Brake */
+   {32,  RETRO_DEVICE_ID_JOYPAD_X},      /* Gear 1 */
+   {32,  RETRO_DEVICE_ID_JOYPAD_A},      /* Gear 2 */
+   {49,  RETRO_DEVICE_ID_JOYPAD_START},  /* Start  */
    {53,  RETRO_DEVICE_ID_JOYPAD_SELECT}, /* Coin  */
    {304, RETRO_DEVICE_ID_JOYPAD_L},      /* View  */
    {286, RETRO_DEVICE_ID_JOYPAD_R},      /* Menu  */
@@ -823,6 +825,7 @@ static struct button_bind binds[] = {
 static void process_events(void)
 {
    unsigned i;
+   int analog_left_x, analog_r2, analog_l2;
    input_poll_cb();
 
    for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
@@ -832,6 +835,26 @@ static void process_events(void)
       else
          input.handle_key(binds[i].id, false);
    }
+
+   analog_left_x = input_state_cb(0, RETRO_DEVICE_ANALOG,
+                     RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
+   analog_r2 = input_state_cb(0, RETRO_DEVICE_ANALOG,
+                     RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_R2);
+   analog_l2 = input_state_cb(0, RETRO_DEVICE_ANALOG,
+                     RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_L2);
+
+   // Fallback to digital to avoid the need of an analog/digital core option
+   if (analog_r2 == 0)
+      analog_r2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B ) ? 0x7FFF : 0;
+   if (analog_l2 == 0)
+      analog_l2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y ) ? 0x7FFF : 0;
+   if (analog_left_x == 0)
+   {
+      analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT ) ? -0x7FFF : 0;
+      analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT ) ? 0x7FFF : 0;
+   }
+
+   input.handle_joy_axis(analog_left_x, analog_r2, analog_l2);
 }
 
 void retro_run(void)
