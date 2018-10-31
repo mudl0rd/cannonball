@@ -159,10 +159,9 @@ void Input::handle_joy_axis(int wheel_axis, int accel_axis, int brake_axis)
 
    // Accelerator [Single Axis]
    // Scale input to be in the range of 0 to 0x7F
-   int adjusteda = 0x7F - ((-accel_axis + (1 << 15)) >> 9);           
+   int adjusteda = accel_axis/256;          
    adjusteda += (adjusteda >> 2);
-   // Accelerates slightly for an unknown reason, add a deadzone
-   a_accel = (adjusteda < 80) ? 0 : adjusteda;
+   a_accel = adjusteda;
 
    // Brake [Single Axis]
    // Scale input to be in the range of 0 to 0x7F
