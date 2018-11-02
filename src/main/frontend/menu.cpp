@@ -363,14 +363,14 @@ void Menu::tick_ui()
     // Shift horizon
     if (oroad.horizon_base > HORIZON_DEST)
     {
-        oroad.horizon_base -= 60 / config.fps;
+        oroad.horizon_base -= 60 / (config.fps < 60 ? config.fps : 60);
         if (oroad.horizon_base < HORIZON_DEST)
             oroad.horizon_base = HORIZON_DEST;
     }
     // Advance road
     else
     {
-        uint32_t scroll_speed = (config.fps == 60) ? config.menu.road_scroll_speed : config.menu.road_scroll_speed << 1;
+        uint32_t scroll_speed = (config.fps >= 60) ? config.menu.road_scroll_speed : config.menu.road_scroll_speed << 1;
 
         if (oinitengine.car_increment < scroll_speed << 16)
             oinitengine.car_increment += (1 << 14);
@@ -389,7 +389,9 @@ void Menu::tick_ui()
     }
 
     // Do Animations at 30 fps
-    if (config.fps != 60 || (frame & 1) == 0)
+    if (config.fps == 30
+        || (config.fps == 60 && (frame & 1) == 0)
+        || (config.fps == 120 && (frame & 3) == 1))
     {
         ologo.tick();
         osprites.sprite_copy();
@@ -645,7 +647,7 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_FPS))
             {
-                if (++config.video.fps > 2)
+                if (++config.video.fps > 3)
                 {
 #ifdef __LIBRETRO__
                     config.video.fps = 1;
@@ -860,13 +862,14 @@ void Menu::refresh_menu()
                 set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FPS))
             {               
-                if (config.video.fps == 0)      s = "30 FPS";
 #ifdef __LIBRETRO__
-                else if (config.video.fps == 1) s = "30 FPS";
+                if (config.video.fps == 1) s = "ORIGINAL";
 #else
+                if (config.video.fps == 0)      s = "30 FPS";
                 else if (config.video.fps == 1) s = "ORIGINAL";
 #endif
                 else if (config.video.fps == 2) s = "60 FPS";
+                else if (config.video.fps == 3) s = "120 FPS";
                 set_menu_text(ENTRY_FPS, s);
             }
             else if (SELECTED(ENTRY_SCANLINES))

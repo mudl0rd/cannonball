@@ -164,16 +164,18 @@ void Outrun::vint()
     osprites.update_sprites();
     otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
 
+    uint8_t coin = oinputs.do_credits();
+    outputs->coin_chute_out(&outputs->chute1, coin == 1);
+    outputs->coin_chute_out(&outputs->chute2, coin == 2);
+
     if (config.fps < 120 || (cannonball::frame & 1))
     {
         opalette.cycle_sky_palette();
         opalette.fade_palette();
         // ... 
         ostats.do_timers();
-        if (cannonball_mode != MODE_TTRIAL) ohud.draw_timer1(ostats.time_counter);
-        uint8_t coin = oinputs.do_credits();
-        outputs->coin_chute_out(&outputs->chute1, coin == 1);
-        outputs->coin_chute_out(&outputs->chute2, coin == 2);
+        if (cannonball_mode != MODE_TTRIAL)
+            ohud.draw_timer1(ostats.time_counter);
         oinitengine.set_granular_position();
     }
 }

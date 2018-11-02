@@ -52,6 +52,9 @@ Interface cannonboard;
 // Pause Engine
 bool pause_engine;
 
+float FRAMERATE = 60;
+bool timing_update = false;
+
 static void config_init(void)
 {
     // ------------------------------------------------------------------------
@@ -216,11 +219,12 @@ void retro_set_environment(retro_environment_t cb)
       { "cannonball_menu_road_scroll_speed", "Menu Road Scroll Speed; 50|60|70|80|90|100|150|200|300|400|500|5|10|15|20|25|30|40" },
       { "cannonball_video_widescreen", "Video Widescreen Mode; ON|OFF" },
       { "cannonball_video_hires", "Video High-Resolution Mode; OFF|ON" },
-/*      { "cannonball_video_fps", "Video Framerate; Smooth (60)|Original (60/30)|Low (30)" }, */
+      { "cannonball_video_fps", "Video Framerate; Smooth (60)|Ultra Smooth (120)|Original (60/30)" },
       { "cannonball_sound_advertise", "Advertise Sound; ON|OFF" },
       { "cannonball_sound_preview", "Preview Music; ON|OFF" },
       { "cannonball_sound_fix_samples", "Fix Samples (use opr-10188.71f); ON|OFF" },
       { "cannonball_gear", "Gear Mode; Manual|Manual Cabinet|Manual 2 Buttons|Automatic" },
+      { "cannonball_analog", "Analog Controls (off to allow digital speed setup); ON|OFF" },
       { "cannonball_steer_speed", "Digital Steer Speed; 3|4|5|6|7|8|9|1|2" },
       { "cannonball_pedal_speed", "Digital Pedal Speed; 4|5|6|7|8|9|1|2|3" },
       { "cannonball_dip_time", "Time; Easy (80s)|Normal (75s)|Hard (72s)|Very Hard (70s)|Infinite Time" },
@@ -327,28 +331,28 @@ static void update_variables(void)
          geometry_update = true;
       }
    }
-/*
+
    var.key = "cannonball_video_fps";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
-      int newval = 0;
+      unsigned int newval = 0;
 
-      if (strcmp(var.value, "Smooth (60)") == 0)
-         newval = 2;
-      else if (strcmp(var.value, "riginal (60/30)") == 0)
+      if (strcmp(var.value, "Ultra Smooth (120)") == 0)
+         newval = 3;
+      else if (strcmp(var.value, "Original (60/30)") == 0)
          newval = 1;
-      else if (strcmp(var.value, "Low (30)") == 0)
-         newval = 0;
+      else
+         newval = 2;
 
       if (newval != config.video.fps)
       {
          config.video.fps = newval;
-         geometry_update = true;
+         timing_update = true;
       }
    }
-*/
+
    var.key = "cannonball_sound_advertise";
    var.value = NULL;
 
@@ -397,6 +401,23 @@ static void update_variables(void)
          gear_mode = 3;
 
       config.controls.gear = gear_mode;
+   }
+
+   var.key = "cannonball_analog";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+      {
+         config.controls.analog = 1;
+         input.analog = 1;
+      }
+      else if (strcmp(var.value, "OFF") == 0)
+      {
+         config.controls.analog = 0;
+         input.analog = 0;
+      }
    }
 
    var.key = "cannonball_steer_speed";
@@ -600,9 +621,11 @@ static void update_variables(void)
       video.disable();
       video.init(&roms, &config.video);
       video.sprite_layer->set_x_clip(false);
-/*      config.set_fps(config.video.fps); */
       update_geometry();
    }
+
+   if (timing_update)
+      config.set_fps(config.video.fps);
 }
 
 void retro_get_system_info(struct retro_system_info *info) {
@@ -615,13 +638,22 @@ void retro_get_system_info(struct retro_system_info *info) {
 
 void retro_get_system_av_info(struct retro_system_av_info *info) {
     memset(info, 0, sizeof(*info));
-    info->timing.fps            = 60.0;
+    info->timing.fps            = FRAMERATE;
     info->timing.sample_rate    = 44100;
     info->geometry.base_width   = S16_WIDTH;
     info->geometry.base_height  = S16_HEIGHT;
     info->geometry.max_width    = S16_WIDTH << 1;
     info->geometry.max_height   = S16_WIDTH << 1;
     info->geometry.aspect_ratio = (config.video.widescreen)? 16.0f / 9.0f : 4.0f / 3.0f;
+}
+
+void update_timing(void)
+{
+   struct retro_system_av_info system_av_info;
+   retro_get_system_av_info(&system_av_info);
+   FRAMERATE = (config.fps != 120) ? 60 : 119.95;
+   system_av_info.timing.fps = FRAMERATE;
+   environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
 }
 
 void retro_set_controller_port_device(unsigned port, unsigned device) {
@@ -843,15 +875,18 @@ static void process_events(void)
    analog_l2 = input_state_cb(0, RETRO_DEVICE_ANALOG,
                      RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_L2);
 
-   // Fallback to digital to avoid the need of an analog/digital core option
-   if (analog_r2 == 0)
-      analog_r2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B ) ? 0x7FFF : 0;
-   if (analog_l2 == 0)
-      analog_l2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y ) ? 0x7FFF : 0;
-   if (analog_left_x == 0)
+   // Fallback to digital
+   if (config.controls.analog == 1)
    {
-      analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT ) ? -0x7FFF : 0;
-      analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT ) ? 0x7FFF : 0;
+      if (analog_r2 == 0)
+         analog_r2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B ) ? 0x7FFF : 0;
+      if (analog_l2 == 0)
+         analog_l2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y ) ? 0x7FFF : 0;
+      if (analog_left_x == 0)
+      {
+         analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT ) ? -0x7FFF : 0;
+         analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT ) ? 0x7FFF : 0;
+      }
    }
 
    input.handle_joy_axis(analog_left_x, analog_r2, analog_l2);
@@ -859,9 +894,16 @@ static void process_events(void)
 
 void retro_run(void)
 {
+    struct retro_system_av_info system_av_info;
+    retro_get_system_av_info(&system_av_info);
     bool updated = false;
+
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
         update_variables();
+
+    if ((config.fps == 120 && system_av_info.timing.fps == 60) ||
+        (config.fps != 120 && system_av_info.timing.fps == 119.95))
+        update_timing();
 
     frame++;
 

@@ -31,7 +31,7 @@ void Input::init(int pad_id, int* key_config, int* pad_config, int analog, int* 
     this->wheel_zone  = analog_settings[0];
     this->wheel_dead  = analog_settings[1];
     this->pedals_dead = analog_settings[2];
-    this->gamepad     = true;
+    this->gamepad     = analog;
 
     a_wheel = CENTRE;
 }

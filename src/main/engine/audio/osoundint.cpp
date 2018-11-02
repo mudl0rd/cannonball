@@ -79,6 +79,11 @@ void OSoundInt::tick()
         osound.tick();
         osound.tick();
     }
+    else if (config.fps == 120)
+    {
+        play_queued_sound(); // Process audio commands from main program code
+        osound.tick();
+    }
 }
 
 // ----------------------------------------------------------------------------

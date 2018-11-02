@@ -406,11 +406,21 @@ bool Config::clear_scores()
 void Config::set_fps(int fps)
 {
     video.fps = fps;
-    // Set core FPS to 30fps or 60fps
-    this->fps = video.fps == 0 ? 30 : 60;
+    // Set core FPS to 30fps, 60fps or 120fps
+    if (video.fps == 0)
+        this->fps = 30;
+    else if (video.fps == 3)
+        this->fps = 120;
+    else
+        this->fps = 60;
     
     // Original game ticks sprites at 30fps but background scroll at 60fps
-    tick_fps  = video.fps < 2 ? 30 : 60;
+    if (video.fps == 3)
+        tick_fps = 120;
+    else if (video.fps < 2)
+        tick_fps = 30;
+    else
+        tick_fps = 60;
 
     cannonball::frame_ms = 1000.0 / this->fps;
 
