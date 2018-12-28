@@ -61,14 +61,7 @@ void Config::load(const std::string &filename)
     // No namespace qualification is needed, because of Koenig 
     // lookup on the second argument. If reading fails, exception
     // is thrown.
-    try
-    {
-        read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
-    }
-    catch (std::exception &e)
-    {
-        std::cout << "Error: " << e.what() << "\n";
-    }
+   read_xml(filename, pt_config, boost::property_tree::xml_parser::trim_whitespace);
 
     // ------------------------------------------------------------------------
     // Menu Settings

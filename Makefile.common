@@ -4,6 +4,10 @@ INCFLAGS := -I$(CORE_DIR)/src/main \
 				-I$(LIBRETRO_COMM_DIR)/include \
 				-I$(CORE_DIR)/deps
 
+ifneq (,$(findstring msvc200,$(platform)))
+INCFLAGS += -I$(LIBRETRO_COMM_DIR)/include/compat/msvc
+endif
+
 FLAGS := -D__LIBRETRO__
 #FLAGS += -DCANNONBOARD
 FLAGS += -DCOMPILE_SOUND_CODE
