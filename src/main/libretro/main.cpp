@@ -55,6 +55,8 @@ bool pause_engine;
 float FRAMERATE = 60;
 bool timing_update = false;
 
+static bool libretro_supports_bitmasks = false;
+
 static void config_init(void)
 {
     // ------------------------------------------------------------------------
@@ -821,12 +823,16 @@ size_t retro_get_memory_size(unsigned id)
 
 void retro_init(void)
 {
-    unsigned                  level = 2;
-    environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
+   unsigned                  level = 2;
+   environ_cb(RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL, &level);
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
+      libretro_supports_bitmasks = true;
 }
 
 void retro_deinit(void)
 {
+   libretro_supports_bitmasks = false;
 }
 
 void retro_reset(void)
@@ -858,11 +864,24 @@ static void process_events(void)
 {
    unsigned i;
    int analog_left_x, analog_r2, analog_l2;
+   int16_t ret = 0;
+
    input_poll_cb();
+
+   if (libretro_supports_bitmasks)
+      ret = input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_MASK);
+   else
+   {
+      for (i = 0; i < (RETRO_DEVICE_ID_JOYPAD_R+1); i++)
+      {
+         if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, binds[i].joy_id))
+            ret |= (1 << i);
+      }
+   }
 
    for (i = 0; i < (sizeof(binds) / sizeof(binds[0])); i++)
    {
-      if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, binds[i].joy_id))
+      if (ret & (1 << binds[i].joy_id))
          input.handle_key(binds[i].id, true);
       else
          input.handle_key(binds[i].id, false);
@@ -870,22 +889,22 @@ static void process_events(void)
 
    analog_left_x = input_state_cb(0, RETRO_DEVICE_ANALOG,
                      RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X);
-   analog_r2 = input_state_cb(0, RETRO_DEVICE_ANALOG,
+   analog_r2     = input_state_cb(0, RETRO_DEVICE_ANALOG,
                      RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_R2);
-   analog_l2 = input_state_cb(0, RETRO_DEVICE_ANALOG,
+   analog_l2     = input_state_cb(0, RETRO_DEVICE_ANALOG,
                      RETRO_DEVICE_INDEX_ANALOG_BUTTON, RETRO_DEVICE_ID_JOYPAD_L2);
 
-   // Fallback to digital
+   /* Fallback to digital */
    if (config.controls.analog == 1)
    {
       if (analog_r2 == 0)
-         analog_r2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B ) ? 0x7FFF : 0;
+         analog_r2 = (ret & (1 << RETRO_DEVICE_ID_JOYPAD_B )) ? 0x7FFF : 0;
       if (analog_l2 == 0)
-         analog_l2 = input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y ) ? 0x7FFF : 0;
+         analog_l2 = (ret & (1 << RETRO_DEVICE_ID_JOYPAD_Y )) ? 0x7FFF : 0;
       if (analog_left_x == 0)
       {
-         analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT ) ? -0x7FFF : 0;
-         analog_left_x += input_state_cb( 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT ) ? 0x7FFF : 0;
+         analog_left_x += (ret & (1 << RETRO_DEVICE_ID_JOYPAD_LEFT )) ? -0x7FFF : 0;
+         analog_left_x += (ret & (1 << RETRO_DEVICE_ID_JOYPAD_RIGHT )) ? 0x7FFF : 0;
       }
    }
 
