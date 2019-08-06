@@ -73,12 +73,12 @@ ifneq (,$(findstring unix,$(platform)))
       else ifneq (,$(findstring rpi2,$(platform)))
          CFLAGS += -DARM -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
          CXXFLAGS += -DARM -marm -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
-      else ifneq (,$(findstring rpi3,$(platform)))
-         CFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
-         CXXFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
       else ifneq (,$(findstring rpi3_64,$(platform)))
          CFLAGS += -DARM -march=armv8-a+crc -mtune=cortex-a53
          CXXFLAGS += -DARM -march=armv8-a+crc -mtune=cortex-a53
+      else ifneq (,$(findstring rpi3,$(platform)))
+         CFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+         CXXFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
       endif
    endif
 
