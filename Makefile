@@ -65,8 +65,8 @@ ifneq (,$(findstring unix,$(platform)))
    
    # Raspberry Pi
    ifneq (,$(findstring rpi,$(platform)))
-      CFLAGS += -fomit-frame-pointer -ffast-math
-      CXXFLAGS += -fomit-frame-pointer -ffast-math
+      CFLAGS += -fomit-frame-pointer
+      CXXFLAGS += -fomit-frame-pointer
       ifneq (,$(findstring rpi1,$(platform)))
          CFLAGS += -DARM -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard
          CXXFLAGS += -DARM -marm -march=armv6j -mfpu=vfp -mfloat-abi=hard
@@ -76,6 +76,9 @@ ifneq (,$(findstring unix,$(platform)))
       else ifneq (,$(findstring rpi3,$(platform)))
          CFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
          CXXFLAGS += -DARM -marm -mcpu=cortex-a53 -mfpu=neon-fp-armv8 -mfloat-abi=hard
+      else ifneq (,$(findstring rpi3_64,$(platform)))
+         CFLAGS += -DARM -march=armv8-a+crc -mtune=cortex-a53
+         CXXFLAGS += -DARM -march=armv8-a+crc -mtune=cortex-a53
       endif
    endif
 
