@@ -208,6 +208,19 @@ else ifeq ($(platform), xenon)
    ENDIANNESS_DEFINES += -D__LIBXENON__ -m32 -D__ppc__ -DMSB_FIRST -DBYTE_ORDER=BIG_ENDIAN
    STATIC_LINKING = 1
 
+# CTR (3DS)
+else ifeq ($(platform), ctr)
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
+   CC = $(DEVKITARM)/bin/arm-none-eabi-gcc$(EXE_EXT)
+   CXX = $(DEVKITARM)/bin/arm-none-eabi-g++$(EXE_EXT)
+   AR = $(DEVKITARM)/bin/arm-none-eabi-ar$(EXE_EXT)
+   STATIC_LINKING = 1
+   FLAGS += -D_3DS
+   FLAGS += -DARM11
+   FLAGS += -march=armv6k -mtune=mpcore -mfloat-abi=hard
+   FLAGS += -Wall -mword-relocations
+   FLAGS += -fomit-frame-pointer -ffast-math
+
 # Nintendo Game Cube / Wii / WiiU
 else ifneq (,$(filter $(platform), ngc wii wiiu))
    TARGET := $(TARGET_NAME)_libretro_$(platform).a
@@ -221,7 +234,7 @@ else ifneq (,$(filter $(platform), ngc wii wiiu))
 
    # Nintendo WiiU
    ifneq (,$(findstring wiiu,$(platform)))
-      ENDIANNESS_DEFINES += -DWIIU -DHW_RVL -mwup
+      ENDIANNESS_DEFINES += -DWIIU -DHW_RVL
 
    # Nintendo Wii
    else ifneq (,$(findstring wii,$(platform)))
@@ -473,8 +486,8 @@ WINDOWS_VERSION=1
 # Windows
 else
    TARGET := $(TARGET_NAME)_libretro.dll
-   CC = gcc
-   CXX = g++
+   CC ?= gcc
+   CXX ?= g++
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
    LDFLAGS += -static-libgcc -static-libstdc++ -lwinmm
 WINDOWS_VERSION=1
