@@ -18,7 +18,7 @@
 #include "engine/audio/osoundint.hpp"
 #include <libretro.h>
 
-#ifdef __CELLOS_LV2__
+#ifdef __PSL1GHT__
 #define free std::free
 #endif
 

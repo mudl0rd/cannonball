@@ -11,7 +11,7 @@
 #include "engine/outils.hpp"
 #include "engine/ostats.hpp"
 
-#ifdef __CELLOS_LV2__
+#ifdef __PSL1GHT__
 #define rand std::rand
 #endif
 

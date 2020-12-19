@@ -22,7 +22,7 @@
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
 
-#ifdef __CELLOS_LV2__
+#ifdef __PSL1GHT__
 #define remove std::remove
 #endif
 
