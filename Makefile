@@ -116,6 +116,7 @@ else ifeq ($(platform), osx)
 		CPPFLAGS += $(TARGET_RULE)
 		CXXFLAGS += $(TARGET_RULE)
 		LDFLAGS  += $(TARGET_RULE)
+		MINVERSION =
    endif
 
    fpic += $(MINVERSION)
