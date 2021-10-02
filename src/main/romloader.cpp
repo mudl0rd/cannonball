@@ -16,11 +16,7 @@
 #include "stdint.hpp"
 #include "romloader.hpp"
 
-#ifdef __LIBRETRO__
 #include <libretro.h>
-#elif defined(__APPLE__)
-#include "CoreFoundation/CoreFoundation.h"
-#endif
 
 RomLoader::RomLoader()
 {
@@ -44,32 +40,10 @@ void RomLoader::unload(void)
 
 int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
 {
-#if defined(__LIBRETRO__)
     extern retro_environment_t environ_cb;
     extern char rom_path[1024];
-
-    const char *dir = NULL;
-    std::string path;
-    path = std::string(rom_path);
-#else
-#if defined(__APPLE__) && !defined(__LIBRETRO__)
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    char bundlepath[PATH_MAX];
-
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
-    {
-        // error!
-    }
-
-    CFRelease(resourcesURL);
-    chdir(bundlepath);
-#endif
-    std::string path = "roms/";
-#endif
-
-    path += std::string(filename);
-
+    const char *dir   = NULL;
+    std::string path  = std::string(rom_path) + std::string(filename);
     // Open rom file
     std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
     if (!src)
@@ -109,20 +83,6 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 // Load Binary File (LayOut Levels, Tilemap Data etc.)
 int RomLoader::load_binary(const char* filename)
 {
-#if defined(__APPLE__) && !defined(__LIBRETRO__)
-    CFBundleRef mainBundle = CFBundleGetMainBundle();
-    CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
-    char bundlepath[PATH_MAX];
-
-    if (!CFURLGetFileSystemRepresentation(resourcesURL, TRUE, (UInt8 *)bundlepath, PATH_MAX))
-    {
-        // error!
-    }
-
-    CFRelease(resourcesURL);
-    chdir(bundlepath);
-#endif
-
     // --------------------------------------------------------------------------------------------
     // Read LayOut Data File
     // --------------------------------------------------------------------------------------------
