@@ -34,15 +34,13 @@
 #include "sdl2/rendersurface.hpp"
 #endif
 
-#elif defined __LIBRETRO__
+#else
 #include <libretro.h>
 extern retro_video_refresh_t       video_cb;
 #define Rshift 11
 #define Gshift 6
 #define Bshift 0
 #define CURRENT_RGB() (r << Rshift) | (g << Gshift) | (b << Bshift);
-#else
-#include "sdl/rendersw.hpp"
 #endif //SDL2
 
 Video video;

@@ -36,7 +36,6 @@
 using namespace cannonball;
 
 int    cannonball::state       = STATE_BOOT;
-double cannonball::frame_ms    = 0;
 int    cannonball::frame       = 0;
 bool   cannonball::tick_frame  = true;
 int    cannonball::fps_counter = 0;

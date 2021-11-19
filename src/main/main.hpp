@@ -3,13 +3,7 @@
 #include "globals.hpp"
 
 #ifdef COMPILE_SOUND_CODE
-#ifdef SDL2
-#include "sdl2/audio.hpp"
-#elif defined __LIBRETRO__
 #include "libretro/audio.hpp"
-#else
-#include "sdl/audio.hpp"
-#endif
 #endif
 
 namespace cannonball
@@ -23,9 +17,6 @@ namespace cannonball
 
     // Tick Logic. Used when running at non-standard > 30 fps
     extern bool tick_frame;
-
-    // Millisecond Time Per Frame
-    extern double frame_ms;
 
     // FPS Counter
     extern int fps_counter;

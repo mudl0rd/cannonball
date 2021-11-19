@@ -119,7 +119,6 @@ void Audio::tick()
    static unsigned SND_RATE      = 44100;
     int bytes_written = 0;
     int newpos;
-    double bytes_per_ms;
 
     if (!sound_enabled)
        return;
@@ -157,7 +156,6 @@ void Audio::tick()
     uint8_t* mbuf8 = (uint8_t*) mix_buffer;
 
     // produce samples from the sound emulation
-    bytes_per_ms = (bytes_per_sample) * (FREQ/1000.0);
     bytes_written = (BITS == 8 ? samples_written : samples_written*2);
     
     // now we copy the data into the buffer and adjust the positions

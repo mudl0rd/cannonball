@@ -421,8 +421,6 @@ void Config::set_fps(int fps)
     else
         tick_fps = 60;
 
-    cannonball::frame_ms = 1000.0 / this->fps;
-
     #ifdef COMPILE_SOUND_CODE
     if (config.sound.enabled)
         cannonball::audio.stop_audio();
