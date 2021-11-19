@@ -95,7 +95,4 @@ public:
     {
         return rom[addr];
     }
-
-private:
-    int filesize(const char* filename);
 };

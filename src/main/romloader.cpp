@@ -9,7 +9,6 @@
 ***************************************************************************/
 
 #include <iostream>
-#include <fstream>
 #include <cstddef>       // for std::size_t
 #include <boost/crc.hpp> // CRC Checking via Boost library.
 
@@ -17,6 +16,14 @@
 #include "romloader.hpp"
 
 #include <libretro.h>
+#include <streams/file_stream.h>
+
+extern "C" {
+RFILE* rfopen(const char *path, const char *mode);
+int rfclose(RFILE* stream);
+int64_t rfread(void* buffer,
+   size_t elem_size, size_t elem_count, RFILE* stream);
+}
 
 RomLoader::RomLoader()
 {
@@ -45,7 +52,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     const char *dir   = NULL;
     std::string path  = std::string(rom_path) + std::string(filename);
     // Open rom file
-    std::ifstream src(path.c_str(), std::ios::in | std::ios::binary);
+    RFILE *src        = rfopen(path.c_str(), "rb");
     if (!src)
     {
         std::cout << "cannot open rom: " << filename << std::endl;
@@ -54,12 +61,12 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     }
 
     // Read file
-    char* buffer = new char[length];
-    src.read(buffer, length);
+    char* buffer  = new char[length];
+    size_t gcount = rfread(buffer, sizeof(char), length, src);
 
     // Check CRC on file
     boost::crc_32_type result;
-    result.process_bytes(buffer, (size_t) src.gcount());
+    result.process_bytes(buffer, gcount);
 
     if (expected_crc != result.checksum())
     {
@@ -69,13 +76,11 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 
     // Interleave file as necessary
     for (int i = 0; i < length; i++)
-    {
         rom[(i * interleave) + offset] = buffer[i];
-    }
 
     // Clean Up
     delete[] buffer;
-    src.close();
+    rfclose(src);
     loaded = true;
     return 0; // success
 }
@@ -86,7 +91,7 @@ int RomLoader::load_binary(const char* filename)
     // --------------------------------------------------------------------------------------------
     // Read LayOut Data File
     // --------------------------------------------------------------------------------------------
-    std::ifstream src(filename, std::ios::in | std::ios::binary);
+    RFILE *src = rfopen(filename, "rb");
     if (!src)
     {
         std::cout << "cannot open file: " << filename << std::endl;
@@ -94,25 +99,16 @@ int RomLoader::load_binary(const char* filename)
         return 1; // fail
     }
 
-    length = filesize(filename);
+    length       = filestream_get_size(src);
 
     // Read file
     char* buffer = new char[length];
-    src.read(buffer, length);
+    rfread(buffer, sizeof(char), length, src);
     rom = (uint8_t*) buffer;
 
     // Clean Up
-    src.close();
+    rfclose(src);
 
     loaded = true;
     return 0; // success
-}
-
-int RomLoader::filesize(const char* filename)
-{
-    std::ifstream in(filename, std::ifstream::in | std::ifstream::binary);
-    in.seekg(0, std::ifstream::end);
-    int size = (int) in.tellg();
-    in.close();
-    return size; 
 }
