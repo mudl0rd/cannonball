@@ -12,6 +12,4 @@
 
 #pragma once
 
-#include <boost/static_assert.hpp>
-
 #include <stdint.h>

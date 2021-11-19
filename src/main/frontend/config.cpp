@@ -28,7 +28,6 @@
 
 
 // api change in boost 1.56
-#include <boost/version.hpp>
 #if (BOOST_VERSION >= 105600)
 typedef boost::property_tree::xml_writer_settings<std::string> xml_writer_settings;
 #else
