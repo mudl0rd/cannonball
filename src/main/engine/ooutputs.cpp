@@ -27,7 +27,7 @@
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
-#include "directx/ffeedback.hpp"
+#include "libretro/ffeedback.hpp"
 
 OOutputs::OOutputs(void)
 {
