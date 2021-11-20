@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <streams/file_stream.h>
+
 #include "input.hpp"
 
 #include "video.hpp"
@@ -209,6 +211,7 @@ char rom_path[1024];
 
 void retro_set_environment(retro_environment_t cb)
 {
+   struct retro_vfs_interface_info vfs_iface_info;
    struct retro_log_callback log;
 
    environ_cb = cb;
@@ -250,6 +253,11 @@ void retro_set_environment(retro_environment_t cb)
       log_cb = NULL;
 
    cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+
+   vfs_iface_info.required_interface_version = 1;
+   vfs_iface_info.iface                      = NULL;
+   if (cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+      filestream_vfs_init(&vfs_iface_info);
 }
 
 void retro_set_video_refresh(retro_video_refresh_t cb) { video_cb = cb; }
