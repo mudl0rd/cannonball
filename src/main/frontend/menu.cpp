@@ -495,7 +495,6 @@ void Menu::tick_menu()
         {
             if (SELECTED(ENTRY_START_CONT))
             {
-                config.save(FILENAME_CONFIG);
                 outrun.custom_traffic = config.cont_traffic;
                 start_game(Outrun::MODE_CONT);
             }
@@ -513,7 +512,6 @@ void Menu::tick_menu()
             {
                 if (check_jap_roms())
                 {
-                    config.save(FILENAME_CONFIG);
                     state = STATE_TTRIAL;
                     ttrial->init();
                 }
@@ -556,10 +554,6 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_SAVE))
             {
-                if (config.save(FILENAME_CONFIG))
-                    display_message("SETTINGS SAVED");
-                else
-                    display_message("ERROR SAVING SETTINGS!");
                 set_menu(&menu_main);
             }
         }
