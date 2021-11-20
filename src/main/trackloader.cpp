@@ -82,21 +82,6 @@ void TrackLoader::init(bool jap)
         init_layout_tracks(jap);
 }
 
-bool TrackLoader::set_layout_track(const char* filename)
-{
-    if (layout == NULL)
-        delete layout;
-
-    layout = new RomLoader();
-    
-    if (layout->load_binary(filename))
-        return false;
-
-    mode = MODE_LAYOUT;
-
-    return true;
-}
-
 void TrackLoader::init_original_tracks(bool jap)
 {
     stage_data = jap ? STAGE_MAPPING_JAP : STAGE_MAPPING_USA;

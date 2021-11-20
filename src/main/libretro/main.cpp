@@ -726,7 +726,6 @@ bool retro_load_game(const struct retro_game_info *info)
     fill_pathname_basedir(rom_path, info->path, sizeof(rom_path));
     log_cb(RETRO_LOG_INFO, "Rom directory: %s\n", rom_path);
 
-   //trackloader.set_layout_track("d:/temp.bin");
    bool loaded = roms.load_revb_roms();
 
    if (!loaded)
