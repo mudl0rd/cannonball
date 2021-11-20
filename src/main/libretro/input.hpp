@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "../stdint.hpp"
+#include <stdint.h>
 
 class Input
 {
@@ -32,7 +32,7 @@ public:
         PAUSE = 11,
         STEP  = 12,
         TIMER = 13,
-        MENU = 14,     
+        MENU  = 14
     };
 
     bool keys[15];

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../stdint.hpp"
+#include <stdint.h>
 
 class Interface;
 struct Packet;

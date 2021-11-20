@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <vector>
-#include "stdint.hpp"
 
 class Interface;
 class CabDiag;

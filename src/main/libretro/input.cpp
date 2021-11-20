@@ -103,28 +103,6 @@ void Input::handle_key(const int key, const bool is_pressed)
 
     if (key == key_config[11])
         keys[VIEWPOINT] = is_pressed;
-
-#if 0
-    // Function keys are not redefinable
-    switch (key)
-    {
-        case SDLK_F1:
-            keys[PAUSE] = is_pressed;
-            break;
-
-        case SDLK_F2:
-            keys[STEP] = is_pressed;
-            break;
-
-        case SDLK_F3:
-            keys[TIMER] = is_pressed;
-            break;
-
-        case SDLK_F5:
-            keys[MENU] = is_pressed;
-            break;
-    }
-#endif
 }
 
 

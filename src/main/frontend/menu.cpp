@@ -6,7 +6,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-// Boost string prediction
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "main.hpp"

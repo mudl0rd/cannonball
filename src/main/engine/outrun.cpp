@@ -613,10 +613,10 @@ void Outrun::main_switch()
     oinitengine.update_road();
     oinitengine.update_engine();
 
+#ifndef NDEBUG
     // --------------------------------------------------------------------------------------------
     // Debugging Only
     // --------------------------------------------------------------------------------------------
-    if (DEBUG_LEVEL)
     {
         if (oinitengine.rd_split_state != 0)
         {
@@ -645,7 +645,7 @@ void Outrun::main_switch()
             oinitengine.car_x_pos = oroad.car_x_bak;
         } 
     }
-
+#endif
 }
 
 // Setup Jump Table. Move from ROM to RAM.

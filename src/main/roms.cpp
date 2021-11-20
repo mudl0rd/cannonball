@@ -5,7 +5,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include "stdint.hpp"
+#include <stdint.h>
 #include "roms.hpp"
 
 Roms roms;

@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "stdint.hpp"
+#include <stdint.h>
 #include "globals.hpp"
 #include "roms.hpp"
 #include "hwvideo/hwtiles.hpp"

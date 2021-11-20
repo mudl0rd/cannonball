@@ -5,6 +5,7 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -16,7 +17,6 @@
 
 #include "romloader.hpp"
 #include "trackloader.hpp"
-#include "stdint.hpp"
 #include "main.hpp"
 #include "setup.hpp"
 #include "engine/outrun.hpp"

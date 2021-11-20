@@ -12,7 +12,7 @@
 #include <string>
 #include <boost/crc.hpp> // CRC Checking via Boost library.
 
-#include "stdint.hpp"
+#include <stdint.h>
 #include "romloader.hpp"
 
 #include <libretro.h>
