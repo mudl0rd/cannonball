@@ -290,10 +290,6 @@ void OFerrari::logic()
                 oinputs.brake_adjust = 0xFF;
                 do_end_seq();
                 break;
-
-        /*default:
-            std::cout << "Need to finish OFerrari:logic()" << std::endl;
-            break;*/
     }
 }
 
@@ -344,10 +340,6 @@ void OFerrari::ferrari_normal()
         case GS_INIT_MUSIC:
         case GS_MUSIC:
             return;
-
-        /*default:
-            std::cout << "Need to finish OFerrari:ferrari_normal()" << std::endl;
-            break;*/
     }
 }
 
@@ -1501,11 +1493,6 @@ void OFerrari::convert_revs_speed(int32_t new_torque, int32_t &d2)
     d2 = ((d2 >> 16) * 0x1A90) >> 8;
     d2 = (d2 << 16) >> 4;
     
-    /*if (!new_torque)
-    {
-        std::cout << "convert_revs_speed error!" << std::endl;
-    }*/
-
     d2 = (d2 / new_torque) * 0x480;
     
     if (d2 < 0) d2 = 0;

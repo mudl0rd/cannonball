@@ -9,8 +9,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <iostream>
-
 #include "video.hpp"
 #include "setup.hpp"
 #include "globals.hpp"

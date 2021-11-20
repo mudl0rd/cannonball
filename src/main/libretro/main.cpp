@@ -5,8 +5,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-// Error reporting
-#include <iostream>
 #include <stdlib.h>
 #include <string.h>
 
@@ -198,7 +196,7 @@ static void config_init(void)
 #include <compat/strl.h>
 #include <file/file_path.h>
 
-static retro_log_printf_t          log_cb;
+retro_log_printf_t                 log_cb;
 retro_video_refresh_t              video_cb;
 static retro_input_poll_t          input_poll_cb;
 static retro_input_state_t         input_state_cb;

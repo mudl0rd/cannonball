@@ -7,7 +7,6 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <iostream>
 #include <cstdlib> // abs
 #include <string.h>
 #include "input.hpp"
@@ -132,7 +131,6 @@ void Input::handle_key(const int key, const bool is_pressed)
 void Input::handle_joy_axis(int wheel_axis, int accel_axis, int brake_axis)
 {
    // Analog Controls
-   //std::cout << "Axis: " << (int) evt->axis << " Value: " << (int) evt->value << std::endl;
 
    // Steering
    // OutRun requires values between 0x48 and 0xb8.
@@ -154,7 +152,6 @@ void Input::handle_joy_axis(int wheel_axis, int accel_axis, int brake_axis)
        if (std::abs(CENTRE - adjustedw) <= wheel_dead)
            adjustedw = CENTRE;
    }
-   //std::cout << "wheel zone : " << wheel_zone << " : " << std::hex << " : " << (int) adjustedw << std::endl;
    a_wheel = adjustedw;
 
    // Accelerator [Single Axis]

@@ -10,7 +10,8 @@
 // see: http://www.boost.org/doc/libs/1_52_0/doc/html/boost_propertytree/tutorial.html
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <iostream>
+
+#include <libretro.h>
 
 #include "main.hpp"
 #include "config.hpp"
@@ -20,6 +21,8 @@
 
 #include "engine/ohiscore.hpp"
 #include "engine/audio/osoundint.hpp"
+
+extern retro_log_printf_t                 log_cb;
 
 #ifdef __PSL1GHT__
 #define remove std::remove
@@ -115,7 +118,7 @@ void Config::save_scores(const std::string &filename)
     }
     catch (std::exception &e)
     {
-        std::cout << "Error saving hiscores: " << e.what() << "\n";
+        log_cb(RETRO_LOG_ERROR, "Error saving hiscores: %s\n", e.what());
     }
 }
 
@@ -168,7 +171,7 @@ void Config::save_tiletrial_scores()
     }
     catch (std::exception &e)
     {
-        std::cout << "Error saving hiscores: " << e.what() << "\n";
+        log_cb(RETRO_LOG_ERROR, "Error saving hiscores: %s\n", e.what());
     }
 }
 

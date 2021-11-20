@@ -7,7 +7,10 @@
 
 #include "interface.hpp"
 #ifdef CANNONBOARD
+#include <libretro.h>
 #include "asyncserial.hpp"
+
+retro_log_printf_t                 log_cb;
 
 // ----------------------------------------------------------------------------
 // Dummy Functions for Non-CannonBall Builds
@@ -57,7 +60,7 @@ void Interface::init(const std::string& port, unsigned int baud)
     }
     catch (boost::system::system_error& e)
     {
-        std::cerr << "Error Opening Serial Interface: " << e.what() << std::endl;
+        log_cb(RETRO_LOG_ERROR, "Error Opening Serial Interface: %s\n", e.what());
     }
 }
 
@@ -81,7 +84,7 @@ void Interface::close()
         }
         catch (boost::system::system_error& e)
         {
-            std::cerr << "Error Closing Serial Interface: " << e.what() << std::endl;
+            log_cb(RETRO_LOG_ERROR, "Error Closing Serial Interface: %s\n", e.what());
         }
         delete serial;
         serial     = NULL;

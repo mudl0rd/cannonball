@@ -11,12 +11,13 @@
     Copyright (c) 1998-2008 Atari800 development team
 ***************************************************************************/
 
-#include <iostream>
 #include <string.h>
 #include "audio.hpp"
 #include "frontend/config.hpp" // fps
 #include "engine/audio/osoundint.hpp"
 #include <libretro.h>
+
+extern retro_log_printf_t                 log_cb;
 
 #ifdef __PSL1GHT__
 #define free std::free
@@ -212,7 +213,7 @@ void Audio::load_wav(const char* filename)
         {
             wavfile.loaded = 0;
             resume_audio();
-            std::cout << "Could not load wav: " << filename << std::endl;
+            log_cb(RETRO_LOG_ERROR, "Could not load WAV: %s\n", filename);
             return;
         }
         

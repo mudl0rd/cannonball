@@ -26,9 +26,6 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 // Use YM2151 Timing
 #define TIMER_CODE 1
 
-// Enable Unused code block warnings
-//#define UNUSED_WARNINGS 1
-
 using namespace z80_adr;
 
 OSound::OSound()
@@ -281,12 +278,6 @@ void OSound::process_command()
             case sound::MUSIC_LASTWAVE:
                 init_sound(cmd, DATA_LASTWAVE, channel::YM1);
                 break;
-
-            #ifdef UNUSED_WARNINGS
-            default:
-                std::cout << "Missing command: " << cmd << std::endl;
-                break;
-            #endif
         }
     }
 }
@@ -422,14 +413,6 @@ void OSound::process_channel(uint16_t chan_id)
     // FM CHANNELS
     // ------------------------------------------------------------------------
 
-    #ifdef UNUSED_WARNINGS
-    if (chan[ch::CTRL])
-        std::cout << "process_channel - unimplemented code 0x167" << std::endl;
-
-    if (chan[ch::FLAGS] & BIT_5)
-        std::cout << "process_channel - unimplemented code 0x21A" << std::endl;
-    #endif
-
     // 0xF9:  
     uint8_t reg;
     uint8_t chan_index = chan[ch::FM_FLAGS] & 7;
@@ -493,22 +476,6 @@ void OSound::process_section(uint8_t* chan)
     // FM Only Code From Here Onwards
     // ------------------------------------------------------------------------
 
-    #ifdef UNUSED_WARNINGS
-    // Not sure, unused?
-    if (chan[ch::FLAGS] & BIT_5)
-    {
-        std::cout << "Warning: process_section - unimplemented code 0x36D!" << std::endl;
-        return;
-    }
-    
-    // Is FM Noise Channel?
-    if (chan[ch::FLAGS] & BIT_1)
-    {
-        std::cout << "Warning: process_section - unimplemented code 2!" << std::endl;
-        return;
-    }
-    #endif
-    
     // 0x30d set_note_octave
     // Command is an offset into the Note Offset table in ROM.
     if (cmd)
@@ -645,11 +612,6 @@ void OSound::do_command(uint8_t* chan, uint8_t cmd)
             pcm_finalize(chan);
             return;
         
-        #ifdef UNUSED_WARNINGS
-        default:
-            std::cout << std::hex << "do_command(...) Unsupported command: " << (int16_t) cmd << " : " << (int16_t) (cmd & 0x3F) << std::endl;
-            break;
-        #endif
     }
 
     pos++;
@@ -1234,10 +1196,6 @@ void OSound::read_mod_table(uint8_t* chan)
         // Unused special case
         else if (table_entry == 0xFC)
         {
-            #ifdef UNUSED_WARNINGS
-            // Missing code here
-            std::cout<< "read_mod_table: table_entry 0xFC not supported" << std::endl;
-            #endif
         }
         // Increment table position
         else
@@ -1704,8 +1662,6 @@ void OSound::engine_set_pitch(uint16_t& pos, uint8_t* pcm)
 
     uint16_t pitch = roms.z80.read8(pos);
 
-    //std::cout << std::hex << pos << std::endl;
-
     // Read pitch from table
     if (bc)
     {
@@ -1920,8 +1876,6 @@ void OSound::traffic_process_entry(uint8_t* pcm)
     // set_pitch2:
     pcm[0x07] = pitch; // Set Pitch
     pcm[0x86] = 0x10;  // Set Active & Enabled
-
-    //std::cout << std::hex << (uint16_t) pitch << std::endl;
 }
 
 // Disable Traffic PCM Channel
@@ -2023,7 +1977,6 @@ void OSound::traffic_read_data(uint8_t* pcm)
 {
     // Get volume of traffic for channel
     uint8_t vol = engine_data[sound::ENGINE_VOL + engine_channel];
-    //std::cout << std::hex << "ch: " << (int16_t) engine_channel << " vol: " << (int16_t) vol << std::endl;    
-    pcm[0x01] = vol & 7;  // Put bottom 3 bits in 01    (pan entry)
-    pcm[0x00] = vol >> 3; // And remaining 5 bits in 00 (used as vol entry)
+    pcm[0x01]   = vol & 7;  // Put bottom 3 bits in 01    (pan entry)
+    pcm[0x00]   = vol >> 3; // And remaining 5 bits in 00 (used as vol entry)
 }

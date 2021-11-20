@@ -8,8 +8,8 @@
     See license.txt for more details.
 ***************************************************************************/
 
-#include <iostream>
 #include <cstddef>       // for std::size_t
+#include <string>
 #include <boost/crc.hpp> // CRC Checking via Boost library.
 
 #include "stdint.hpp"
@@ -17,6 +17,8 @@
 
 #include <libretro.h>
 #include <streams/file_stream.h>
+
+extern retro_log_printf_t                 log_cb;
 
 extern "C" {
 RFILE* rfopen(const char *path, const char *mode);
@@ -55,7 +57,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
     RFILE *src        = rfopen(path.c_str(), "rb");
     if (!src)
     {
-        std::cout << "cannot open rom: " << filename << std::endl;
+        log_cb(RETRO_LOG_ERROR, "Cannot open ROM: %s\n", filename);
         loaded = false;
         return 1; // fail
     }
@@ -70,8 +72,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 
     if (expected_crc != result.checksum())
     {
-        std::cout << std::hex << 
-            filename << " has incorrect checksum.\nExpected: " << expected_crc << " Found: " << result.checksum() << std::endl;
+        log_cb(RETRO_LOG_ERROR, " has incorrect checksum. Expected: %.2s, Found: %.2s\n", filename, expected_crc, result.checksum());
     }
 
     // Interleave file as necessary
@@ -94,7 +95,7 @@ int RomLoader::load_binary(const char* filename)
     RFILE *src = rfopen(filename, "rb");
     if (!src)
     {
-        std::cout << "cannot open file: " << filename << std::endl;
+        log_cb(RETRO_LOG_ERROR, "Cannot open file: %s\n", filename);
         loaded = false;
         return 1; // fail
     }
