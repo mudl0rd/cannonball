@@ -72,7 +72,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 
     if (expected_crc != result.checksum())
     {
-        log_cb(RETRO_LOG_ERROR, " has incorrect checksum. Expected: %.2s, Found: %.2s\n", filename, expected_crc, result.checksum());
+        log_cb(RETRO_LOG_ERROR, "%s has incorrect checksum. Expected: %.2s, Found: %.2s\n", filename, expected_crc, result.checksum());
     }
 
     // Interleave file as necessary
