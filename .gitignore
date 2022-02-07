@@ -264,3 +264,10 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+#############
+## libretro
+#############
+
+*.so
+*.dll

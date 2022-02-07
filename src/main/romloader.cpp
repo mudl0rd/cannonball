@@ -47,7 +47,7 @@ void RomLoader::unload(void)
     delete[] rom;
 }
 
-int RomLoader::load(const char* filename, const int offset, const int length, const int expected_crc, const uint8_t interleave)
+int RomLoader::load(const char* filename, const int offset, const int length, const uint32_t expected_crc, const uint8_t interleave)
 {
     extern retro_environment_t environ_cb;
     extern char rom_path[1024];
@@ -72,7 +72,7 @@ int RomLoader::load(const char* filename, const int offset, const int length, co
 
     if (expected_crc != result.checksum())
     {
-        log_cb(RETRO_LOG_ERROR, "%s has incorrect checksum. Expected: %.2s, Found: %.2s\n", filename, expected_crc, result.checksum());
+        log_cb(RETRO_LOG_ERROR, "%s has incorrect checksum. Expected: 0x%08x, Found: 0x%08x\n", filename, expected_crc, result.checksum());
     }
 
     // Interleave file as necessary
