@@ -16,7 +16,7 @@
 
 #include "hwaudio/ym2151.hpp"
 
-#ifdef __PSL1GHT__
+#ifdef __PS3__
 #define memset std::memset
 #define pow std::pow
 #define floor std::floor

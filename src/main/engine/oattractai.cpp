@@ -45,7 +45,7 @@
 #include "engine/ostats.hpp"
 #include "engine/otraffic.hpp"
 
-#ifdef __PSL1GHT__
+#ifdef __PS3__
 #define srand std::srand
 #endif
 

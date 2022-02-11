@@ -180,20 +180,20 @@ else ifeq ($(platform), libnx)
     CXXFLAGS := $(ASFLAGS) $(CFLAGS) -fno-rtti -std=gnu++11
     CFLAGS += -std=gnu11
     STATIC_LINKING = 1
-
-# PS3
-else ifneq (,$(filter $(platform), psl1ght))
-   TARGET := $(TARGET_NAME)_libretro_ps3.a
+	
+# Lightweight PS3 Homebrew SDK
+else ifneq (,$(filter $(platform), ps3 psl1ght))
+   TARGET := $(TARGET_NAME)_libretro_$(platform).a
    STATIC_LINKING = 1
-   ENDIANNESS_DEFINES := -DMSB_FIRST -DBYTE_ORDER=BIG_ENDIAN -D__PSL1GHT__
+   ENDIANNESS_DEFINES := -DMSB_FIRST -DBYTE_ORDER=BIG_ENDIAN -D__PS3__
 
-   # Lightweight PS3 Homebrew SDK
-   ifneq (,$(findstring psl1ght,$(platform)))
-      TARGET := $(TARGET_NAME)_libretro_$(platform).a
-      CC = $(PS3DEV)/ppu/bin/ppu-gcc$(EXE_EXT)
-      CXX = $(PS3DEV)/ppu/bin/ppu-g++$(EXE_EXT)
-      AR = $(PS3DEV)/ppu/bin/ppu-ar$(EXE_EXT)
+   CC = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)gcc$(EXE_EXT)
+   CXX = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)g++$(EXE_EXT)
+   AR = $(PS3DEV)/ppu/bin/ppu-$(COMMONLV)ar$(EXE_EXT)
+   ifeq ($(platform), psl1ght)
+        ENDIANNESS_DEFINES += -D__PSL1GHT__ 
    endif
+   EXTRA_INCLUDES := -I./deps/ps3
 
 # PSP
 else ifeq ($(platform), psp1)

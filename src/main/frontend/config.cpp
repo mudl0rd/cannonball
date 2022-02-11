@@ -24,7 +24,7 @@
 
 extern retro_log_printf_t                 log_cb;
 
-#ifdef __PSL1GHT__
+#ifdef __PS3__
 #define remove std::remove
 #endif
 
