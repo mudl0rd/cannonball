@@ -19,7 +19,7 @@ X More cars seem to be high pitched than on MAME. (Fixed - engine channel setup)
 #include <cstring> // For memset on GCC
 #include "engine/audio/osound.hpp"
 
-#ifdef __PSL1GHT__
+#ifdef __PS3__
 #define memcpy std::memcpy
 #endif
 

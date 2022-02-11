@@ -11,7 +11,7 @@
 #include "engine/outils.hpp"
 #include "engine/ostats.hpp"
 
-#ifdef __PSL1GHT__
+#ifdef __PS3__
 #define rand std::rand
 #endif
 
