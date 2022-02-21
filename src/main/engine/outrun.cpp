@@ -100,18 +100,20 @@ void Outrun::tick(Packet* packet, bool tick_frame)
 {
     this->tick_frame = tick_frame;
     
-    if (cannonball::tick_frame)
+    if (tick_frame)
+    {
         tick_counter++;
 
-    if (game_state >= GS_START1 && game_state <= GS_INGAME)
-    {
-        if (input.has_pressed(Input::VIEWPOINT))
+        if (game_state >= GS_START1 && game_state <= GS_INGAME)
         {
-            int mode = oroad.get_view_mode() + 1;
-            if (mode > ORoad::VIEW_INCAR)
-                mode = ORoad::VIEW_ORIGINAL;
+            if (input.has_pressed(Input::VIEWPOINT))
+            {
+                int mode = oroad.get_view_mode() + 1;
+                if (mode > ORoad::VIEW_INCAR)
+                    mode = ORoad::VIEW_ORIGINAL;
 
-            oroad.set_view_mode(mode);
+                oroad.set_view_mode(mode);
+            }
         }
     }
 
@@ -135,7 +137,7 @@ void Outrun::tick(Packet* packet, bool tick_frame)
     // Updates V-Blank 1/1 frames
     else if (config.fps == 60 && config.tick_fps == 30)
     {
-        if (cannonball::tick_frame)
+        if (tick_frame)
         {
             jump_table(packet);
             oroad.tick();
@@ -152,6 +154,14 @@ void Outrun::tick(Packet* packet, bool tick_frame)
         vint();
     }
 
+    // Moved out of vertical interrupt
+    if (tick_frame)
+    {
+        uint8_t coin = oinputs.do_credits();
+        outputs->coin_chute_out(&outputs->chute1, coin == 1);
+        outputs->coin_chute_out(&outputs->chute2, coin == 2);
+    }
+
     // Draw FPS
     if (config.video.fps_count)
         ohud.draw_fps_counter(cannonball::fps_counter);
@@ -163,10 +173,6 @@ void Outrun::vint()
     otiles.write_tilemap_hw();
     osprites.update_sprites();
     otiles.update_tilemaps(cannonball_mode == MODE_ORIGINAL ? ostats.cur_stage : 0);
-
-    uint8_t coin = oinputs.do_credits();
-    outputs->coin_chute_out(&outputs->chute1, coin == 1);
-    outputs->coin_chute_out(&outputs->chute2, coin == 2);
 
     if (config.fps < 120 || (cannonball::frame & 1))
     {
@@ -232,7 +238,7 @@ void Outrun::jump_table(Packet* packet)
         // Core Game Engine Routines
         // ----------------------------------------------------------------------------------------
         case GS_LOGO:
-            if (!cannonball::tick_frame)
+            if (!tick_frame)
                 ologo.blit();
 
         case GS_ATTRACT:
