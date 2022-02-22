@@ -951,26 +951,26 @@ void retro_run(void)
     process_events();
 
     if (tick_frame)
-        oinputs.tick(packet); // Do Controls
-    oinputs.do_gear();        // Digital Gear
+    {
+        oinputs.tick(packet);           // Do Controls
+        oinputs.do_gear();        // Digital Gear
+    }
 
     switch (state)
     {
         case STATE_GAME:
         {
-            if (input.has_pressed(Input::TIMER))
-                outrun.freeze_timer = !outrun.freeze_timer;
-
-            if (input.has_pressed(Input::PAUSE))
-                pause_engine = !pause_engine;
-
-            if (input.has_pressed(Input::MENU))
-                state = STATE_INIT_MENU;
+            if (tick_frame)
+            {
+                if (input.has_pressed(Input::TIMER)) outrun.freeze_timer = !outrun.freeze_timer;
+                if (input.has_pressed(Input::PAUSE)) pause_engine = !pause_engine;
+                if (input.has_pressed(Input::MENU))  state = STATE_INIT_MENU;
+            }
 
             if (!pause_engine || input.has_pressed(Input::STEP))
             {
                 outrun.tick(packet, tick_frame);
-                input.frame_done(); // Denote keys read
+                if (tick_frame) input.frame_done();
 
                 #ifdef COMPILE_SOUND_CODE
                 // Tick audio program code
@@ -981,7 +981,7 @@ void retro_run(void)
             }
             else
             {                
-                input.frame_done(); // Denote keys read
+                if (tick_frame) input.frame_done();
             }
         }
         break;
