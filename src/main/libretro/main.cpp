@@ -9,7 +9,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <file/file_path.h>
 #include <streams/file_stream.h>
+#include <string/stdstring.h>
 
 #include "input.hpp"
 
@@ -213,6 +215,7 @@ void retro_set_environment(retro_environment_t cb)
 {
    struct retro_vfs_interface_info vfs_iface_info;
    struct retro_log_callback log;
+   bool no_content = true;
 
    environ_cb = cb;
 
@@ -252,11 +255,13 @@ void retro_set_environment(retro_environment_t cb)
    else
       log_cb = NULL;
 
-   cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+   environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
+
+   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
 
    vfs_iface_info.required_interface_version = 1;
    vfs_iface_info.iface                      = NULL;
-   if (cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &vfs_iface_info))
       filestream_vfs_init(&vfs_iface_info);
 }
 
@@ -691,45 +696,102 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     (void) code;
 }
 
+static void retro_osd_error_msg(const char *str)
+{
+   unsigned msg_interface_version = 0;
+
+   if (string_is_empty(str))
+      return;
+
+   environ_cb(RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION,
+         &msg_interface_version);
+
+   if (msg_interface_version >= 1)
+   {
+      struct retro_message_ext msg;
+      msg.msg      = str;
+      msg.duration = 3000;
+      msg.priority = 3;
+      msg.level    = RETRO_LOG_ERROR;
+      msg.target   = RETRO_MESSAGE_TARGET_ALL;
+      msg.type     = RETRO_MESSAGE_TYPE_NOTIFICATION;
+      msg.progress = -1;
+      environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE_EXT, &msg);
+   }
+   else
+   {
+      struct retro_message msg;
+      msg.msg    = str;
+      msg.frames = 180;
+      environ_cb(RETRO_ENVIRONMENT_SET_MESSAGE, &msg);
+   }
+}
+
 bool retro_load_game(const struct retro_game_info *info)
 {
-    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
+   enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
 
-    struct retro_input_descriptor desc[] = {
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
-        {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X, "Analog X" },
-        {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y, "Analog Y" },
+   struct retro_input_descriptor desc[] = {
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Left"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
+      {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X, "Analog X" },
+      {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y, "Analog Y" },
 
-        {0},
-    };
+      {0},
+   };
 
-    environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
+   environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
-    if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
+   if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &fmt))
    {
-        if (log_cb)
-            log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
-        return false;
-    }
+      if (log_cb)
+         log_cb(RETRO_LOG_INFO, "[Cannonball]: RGB565 is not supported.\n");
+      return false;
+   }
 
-    fill_pathname_basedir(rom_path, info->path, sizeof(rom_path));
-    log_cb(RETRO_LOG_INFO, "Rom directory: %s\n", rom_path);
+   if (info && !string_is_empty(info->path))
+      fill_pathname_basedir(rom_path, info->path, sizeof(rom_path));
+   else
+   {
+      const char *system_dir = NULL;
+      bool path_valid        = false;
+
+      if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &system_dir)
+            && system_dir)
+      {
+         fill_pathname_join(rom_path, system_dir,
+               "cannonball", sizeof(rom_path));
+         fill_pathname_slash(rom_path, sizeof(rom_path));
+
+         path_valid = path_is_directory(rom_path);
+      }
+
+      if (!path_valid)
+      {
+         retro_osd_error_msg("Cannonball game files missing from frontend system directory");
+         return false;
+      }
+   }
+
+   log_cb(RETRO_LOG_INFO, "Rom directory: %s\n", rom_path);
 
    bool loaded = roms.load_revb_roms();
 
    if (!loaded)
+   {
+      retro_osd_error_msg("Cannonball ROM files missing from game directory");
       return false;
+   }
 
    config_init();
 

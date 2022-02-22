@@ -16,7 +16,9 @@ SOURCES_C :=
 
 ifeq ($(STATIC_LINKING),1)
 else
-SOURCES_C +=   $(LIBRETRO_COMM_DIR)/file/file_path.c \
+SOURCES_C += \
+	       $(LIBRETRO_COMM_DIR)/file/file_path.c \
+	       $(LIBRETRO_COMM_DIR)/file/file_path_io.c \
 	       $(LIBRETRO_COMM_DIR)/compat/compat_strl.c \
 	       $(LIBRETRO_COMM_DIR)/compat/compat_snprintf.c \
 	       $(LIBRETRO_COMM_DIR)/compat/compat_posix_string.c \
