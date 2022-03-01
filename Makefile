@@ -265,7 +265,7 @@ else ifeq ($(platform), emscripten)
    TARGET := $(TARGET_NAME)_libretro_$(platform).bc
    STATIC_LINKING = 1
 
-# GCW Zero
+# GCW0 (OpenDingux and OpenDingux Beta)
 else ifeq ($(platform), gcw0)
    TARGET := $(TARGET_NAME)_libretro.so
    CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
@@ -274,7 +274,7 @@ else ifeq ($(platform), gcw0)
    fpic := -fPIC
    SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
    LDFLAGS += -lrt
-   FLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
+   FLAGS += -DDINGUX -fomit-frame-pointer -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
 
 # Windows MSVC 2017 all architectures
 else ifneq (,$(findstring windows_msvc2017,$(platform)))
