@@ -76,7 +76,11 @@ static void config_init(void)
     config.video.scanlines  = 0; // Scanlines
     config.video.fps        = 2; // Default is 60 fps
     config.video.fps_count  = 0; // FPS Counter
+#ifdef DINGUX
+    config.video.widescreen = 0; // Enable Widescreen Mode
+#else
     config.video.widescreen = 1; // Enable Widescreen Mode
+#endif
     config.video.hires      = 0; // Hi-Resolution Mode
     config.video.filtering  = 0; // Open GL Filtering Mode
 
@@ -222,7 +226,11 @@ void retro_set_environment(retro_environment_t cb)
    struct retro_variable variables[] = {
       { "cannonball_menu_enabled", "Menu At Start; ON|OFF" },
       { "cannonball_menu_road_scroll_speed", "Menu Road Scroll Speed; 50|60|70|80|90|100|150|200|300|400|500|5|10|15|20|25|30|40" },
+#ifdef DINGUX
+      { "cannonball_video_widescreen", "Video Widescreen Mode; OFF|ON" },
+#else
       { "cannonball_video_widescreen", "Video Widescreen Mode; ON|OFF" },
+#endif
       { "cannonball_video_hires", "Video High-Resolution Mode; OFF|ON" },
       { "cannonball_video_fps", "Video Framerate; Smooth (60)|Ultra Smooth (120)|Original (60/30)" },
       { "cannonball_sound_advertise", "Advertise Sound; ON|OFF" },
@@ -649,14 +657,28 @@ void retro_get_system_info(struct retro_system_info *info) {
 }
 
 void retro_get_system_av_info(struct retro_system_av_info *info) {
-    memset(info, 0, sizeof(*info));
-    info->timing.fps            = FRAMERATE;
-    info->timing.sample_rate    = 44100;
-    info->geometry.base_width   = S16_WIDTH;
-    info->geometry.base_height  = S16_HEIGHT;
-    info->geometry.max_width    = S16_WIDTH << 1;
-    info->geometry.max_height   = S16_WIDTH << 1;
-    info->geometry.aspect_ratio = (config.video.widescreen)? 16.0f / 9.0f : 4.0f / 3.0f;
+   unsigned scale_factor = config.video.hires ? 2 : 1;
+
+   memset(info, 0, sizeof(*info));
+
+   info->timing.fps            = FRAMERATE;
+   info->timing.sample_rate    = 44100;
+
+   info->geometry.max_width    = S16_WIDTH_WIDE << 1;
+   info->geometry.max_height   = S16_HEIGHT     << 1;
+
+   if (config.video.widescreen)
+   {
+      info->geometry.base_width   = S16_WIDTH_WIDE * scale_factor;
+      info->geometry.base_height  = S16_HEIGHT     * scale_factor;
+      info->geometry.aspect_ratio = 16.0 / 9.0;
+   }
+   else
+   {
+      info->geometry.base_width   = S16_WIDTH  * scale_factor;
+      info->geometry.base_height  = S16_HEIGHT * scale_factor;
+      info->geometry.aspect_ratio = 4.0 / 3.0;
+   }
 }
 
 void update_timing(void)

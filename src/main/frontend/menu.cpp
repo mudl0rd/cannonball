@@ -27,6 +27,10 @@
 #include "frontend/cabdiag.hpp"
 #include "frontend/ttrial.hpp"
 
+#ifdef __LIBRETRO__
+extern void update_geometry();
+#endif
+
 namespace boost {
     namespace algorithm {
 
@@ -648,6 +652,9 @@ void Menu::tick_menu()
             {
                 config.video.widescreen = !config.video.widescreen;
                 restart_video();
+#ifdef __LIBRETRO__
+                update_geometry();
+#endif
             }
             else if (SELECTED(ENTRY_HIRES))
             {
@@ -664,6 +671,9 @@ void Menu::tick_menu()
 
                 restart_video();
                 video.sprite_layer->set_x_clip(false);
+#ifdef __LIBRETRO__
+                update_geometry();
+#endif
             }
             else if (SELECTED(ENTRY_SCALE))
             {
