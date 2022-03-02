@@ -1127,6 +1127,9 @@ void Menu::start_game(int mode, int settings)
         config.sound.preview        = 1;
 
         restart_video();
+#ifdef __LIBRETRO__
+        update_geometry();
+#endif
     }
     // Original Settings
     else if (settings == 2)
@@ -1151,6 +1154,9 @@ void Menu::start_game(int mode, int settings)
         config.sound.preview        = 0;
 
         restart_video();
+#ifdef __LIBRETRO__
+        update_geometry();
+#endif
     }
     // Otherwise, use whatever is already setup...
     else
