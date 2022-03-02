@@ -135,7 +135,7 @@ static void config_init(void)
     config.controls.keyconfig[4]  = 122; /* accelerate */
     config.controls.keyconfig[5]  = 120; /* brake */
     config.controls.keyconfig[6]  = 32; /* gear1 */
-    config.controls.keyconfig[7]  = 32; /* gear2 */
+    config.controls.keyconfig[7]  = 33; /* gear2 */
     config.controls.keyconfig[8]  = 49; /* start */
     config.controls.keyconfig[9]  = 53; /* coin */
     config.controls.keyconfig[10] = 286; /* menu */
@@ -758,9 +758,9 @@ bool retro_load_game(const struct retro_game_info *info)
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
-      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear (Lo, 2 Buttons Mode)"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
-      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear (Hi, 2 Buttons Mode)"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
@@ -941,7 +941,7 @@ static struct button_bind binds[] = {
    {122, RETRO_DEVICE_ID_JOYPAD_B},      /* Accelerate */
    {120, RETRO_DEVICE_ID_JOYPAD_Y},      /* Brake */
    {32,  RETRO_DEVICE_ID_JOYPAD_X},      /* Gear 1 */
-   {32,  RETRO_DEVICE_ID_JOYPAD_A},      /* Gear 2 */
+   {33,  RETRO_DEVICE_ID_JOYPAD_A},      /* Gear 2 */
    {49,  RETRO_DEVICE_ID_JOYPAD_START},  /* Start  */
    {53,  RETRO_DEVICE_ID_JOYPAD_SELECT}, /* Coin  */
    {304, RETRO_DEVICE_ID_JOYPAD_L},      /* View  */

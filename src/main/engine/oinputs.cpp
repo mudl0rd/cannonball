@@ -189,7 +189,11 @@ void OInputs::do_gear()
     {
         // Manual: Cabinet Shifter
         if (config.controls.gear == config.controls.GEAR_PRESS)
+#ifdef __LIBRETRO__
+            gear = !(input.is_pressed(Input::GEAR1) || input.is_pressed(Input::GEAR2));
+#else
             gear = !input.is_pressed(Input::GEAR1);
+#endif
 
         // Manual: Two Separate Buttons for gears
         else if (config.controls.gear == config.controls.GEAR_SEPARATE)
@@ -203,7 +207,11 @@ void OInputs::do_gear()
         // Manual: Keyboard/Digital Button
         else
         {
+#ifdef __LIBRETRO__
+            if (input.has_pressed(Input::GEAR1) || input.has_pressed(Input::GEAR2))
+#else
             if (input.has_pressed(Input::GEAR1))
+#endif
                 gear = !gear;
         }
     }

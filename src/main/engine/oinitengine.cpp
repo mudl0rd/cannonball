@@ -287,7 +287,11 @@ void OInitEngine::update_engine()
         ohud.blit_text1(HUD_KPH2);
 
         // Blit High/Low Gear
+#ifdef __LIBRETRO__
+        if (!config.cannonboard.enabled)
+#else
         if (config.controls.gear == config.controls.GEAR_BUTTON && !config.cannonboard.enabled)
+#endif
         {
             if (oinputs.gear)
                 ohud.blit_text_new(9, 26, "H");
