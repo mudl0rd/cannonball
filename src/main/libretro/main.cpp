@@ -30,8 +30,7 @@
 #include "engine/ooutputs.hpp"
 #include "engine/omusic.hpp"
 
-// Direct X Haptic Support.
-// Fine to include on non-windows builds as dummy functions used.
+// Haptic Support.
 #include "ffeedback.hpp"
 
 // Initialize Shared Variables
@@ -53,7 +52,6 @@ Interface cannonboard;
 // Pause Engine
 bool pause_engine;
 
-float FRAMERATE = 60;
 bool timing_update = false;
 
 static bool libretro_supports_bitmasks = false;
@@ -158,9 +156,9 @@ static void config_init(void)
     config.controls.asettings[2]  = 0; /* pedals dead */
 
     config.controls.haptic        = 0;
-    config.controls.max_force     = 9000;
-    config.controls.min_force     = 8500;
-    config.controls.force_duration= 20;
+    config.controls.max_force     = 0xFFFF;
+    config.controls.min_force     = 0x1999;
+    config.controls.force_duration= 500;
 
     // ------------------------------------------------------------------------
     // Engine Settings
@@ -240,6 +238,7 @@ void retro_set_environment(retro_environment_t cb)
       { "cannonball_analog", "Analog Controls (off to allow digital speed setup); ON|OFF" },
       { "cannonball_steer_speed", "Digital Steer Speed; 3|4|5|6|7|8|9|1|2" },
       { "cannonball_pedal_speed", "Digital Pedal Speed; 4|5|6|7|8|9|1|2|3" },
+      { "cannonball_haptic_strength", "Haptic Feedback Strength; 10|0|1|2|3|4|5|6|7|8|9" },
       { "cannonball_dip_time", "Time; Easy (80s)|Normal (75s)|Hard (72s)|Very Hard (70s)|Infinite Time" },
       { "cannonball_dip_traffic", "Traffic; Normal|Hard|Very Hard|No Traffic|Easy" },
       { "cannonball_freeplay", "Freeplay Mode; OFF|ON" },
@@ -443,7 +442,7 @@ static void update_variables(void)
    var.key = "cannonball_steer_speed";
    var.value = NULL;
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       config.controls.steer_speed = atoi(var.value);
    }
@@ -451,9 +450,43 @@ static void update_variables(void)
    var.key = "cannonball_pedal_speed";
    var.value = NULL;
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       config.controls.pedal_speed = atoi(var.value);
+   }
+
+   var.key = "cannonball_haptic_strength";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      int min_force_last = config.controls.min_force;
+      int max_force_last = config.controls.max_force;
+      int haptic_level   = atoi(var.value);
+
+      haptic_level = (haptic_level < 0)  ? 0  : haptic_level;
+      haptic_level = (haptic_level > 10) ? 10 : haptic_level;
+
+      if (haptic_level == 0)
+      {
+         config.controls.min_force = 0;
+         config.controls.max_force = 0;
+         forcefeedback::deactivate_rumble();
+      }
+      else
+      {
+         config.controls.min_force = 0x3F +
+               (haptic_level * ((0x1999 - 0x3F) / 10));
+         config.controls.max_force = 0x5  +
+               (haptic_level * (0xFFFF / 10));
+      }
+
+      if ((config.controls.min_force != min_force_last) ||
+          (config.controls.max_force != max_force_last))
+         forcefeedback::update_force_limits(
+               config.controls.max_force,
+               config.controls.min_force,
+               config.controls.force_duration);
    }
 
    var.key = "cannonball_dip_time";
@@ -661,7 +694,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
 
    memset(info, 0, sizeof(*info));
 
-   info->timing.fps            = FRAMERATE;
+   info->timing.fps            = (config.fps != 120) ? 60 : 119.95;
    info->timing.sample_rate    = 44100;
 
    info->geometry.max_width    = S16_WIDTH_WIDE << 1;
@@ -685,8 +718,6 @@ void update_timing(void)
 {
    struct retro_system_av_info system_av_info;
    retro_get_system_av_info(&system_av_info);
-   FRAMERATE = (config.fps != 120) ? 60 : 119.95;
-   system_av_info.timing.fps = FRAMERATE;
    environ_cb(RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO, &system_av_info);
 }
 
@@ -845,8 +876,12 @@ bool retro_load_game(const struct retro_game_info *info)
          config.controls.keyconfig, config.controls.padconfig, 
          config.controls.analog,    config.controls.axis, config.controls.asettings);
 
+   config.controls.haptic = forcefeedback::init_rumble_interface(environ_cb);
    if (config.controls.haptic) 
-      config.controls.haptic = forcefeedback::init(config.controls.max_force, config.controls.min_force, config.controls.force_duration);
+      config.controls.haptic = forcefeedback::init(
+            config.controls.max_force,
+            config.controls.min_force,
+            config.controls.force_duration);
 
 #ifdef CANNONBOARD
    // Initialize CannonBoard (For use in original cabinets)
@@ -1115,5 +1150,9 @@ void retro_run(void)
 #endif
 
     // Draw Video
-    video.draw_frame();  
+    video.draw_frame();
+
+    // Stop any haptic feedback effects if
+    // duration timer has elapsed
+    forcefeedback::update_rumble_interface();
 }
