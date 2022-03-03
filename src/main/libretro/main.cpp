@@ -13,8 +13,9 @@
 #include <streams/file_stream.h>
 #include <string/stdstring.h>
 
-#include "input.hpp"
+#include "libretro_core_options.h"
 
+#include "input.hpp"
 #include "video.hpp"
 
 #include "romloader.hpp"
@@ -218,44 +219,9 @@ void retro_set_environment(retro_environment_t cb)
    struct retro_vfs_interface_info vfs_iface_info;
    struct retro_log_callback log;
    bool no_content = true;
+   bool option_categories = false;
 
    environ_cb = cb;
-
-   struct retro_variable variables[] = {
-      { "cannonball_menu_enabled", "Menu At Start; ON|OFF" },
-      { "cannonball_menu_road_scroll_speed", "Menu Road Scroll Speed; 50|60|70|80|90|100|150|200|300|400|500|5|10|15|20|25|30|40" },
-#ifdef DINGUX
-      { "cannonball_video_widescreen", "Video Widescreen Mode; OFF|ON" },
-#else
-      { "cannonball_video_widescreen", "Video Widescreen Mode; ON|OFF" },
-#endif
-      { "cannonball_video_hires", "Video High-Resolution Mode; OFF|ON" },
-      { "cannonball_video_fps", "Video Framerate; Smooth (60)|Ultra Smooth (120)|Original (60/30)" },
-      { "cannonball_sound_advertise", "Advertise Sound; ON|OFF" },
-      { "cannonball_sound_preview", "Preview Music; ON|OFF" },
-      { "cannonball_sound_fix_samples", "Fix Samples (use opr-10188.71f); ON|OFF" },
-      { "cannonball_gear", "Gear Mode; Manual|Manual Cabinet|Manual 2 Buttons|Automatic" },
-      { "cannonball_analog", "Analog Controls (off to allow digital speed setup); ON|OFF" },
-      { "cannonball_steer_speed", "Digital Steer Speed; 3|4|5|6|7|8|9|1|2" },
-      { "cannonball_pedal_speed", "Digital Pedal Speed; 4|5|6|7|8|9|1|2|3" },
-      { "cannonball_haptic_strength", "Haptic Feedback Strength; 10|0|1|2|3|4|5|6|7|8|9" },
-      { "cannonball_dip_time", "Time; Easy (80s)|Normal (75s)|Hard (72s)|Very Hard (70s)|Infinite Time" },
-      { "cannonball_dip_traffic", "Traffic; Normal|Hard|Very Hard|No Traffic|Easy" },
-      { "cannonball_freeplay", "Freeplay Mode; OFF|ON" },
-      { "cannonball_jap", "Use Japanese Tracks Version; OFF|ON" },
-      { "cannonball_prototype", "Use Prototype Stage 1; OFF|ON" },
-      { "cannonball_level_objects", "Objects Limit Enhanced; ON|OFF" },
-      { "cannonball_randomgen", "Original Traffic Patterns Randomization; ON|OFF" },
-      { "cannonball_force_ai", "Force AI To Play; OFF|ON" },
-      { "cannonball_fix_bugs", "Fix Original Game Bugs; ON|OFF" },
-      { "cannonball_fix_timer", "Fix Timing Bugs; OFF|ON" },
-      { "cannonball_layout_debug", "Display Debug Info For LayOut; OFF|ON" },
-      { "cannonball_new_attract", "New Attract; ON|OFF" },
-      { "cannonball_ttrial_laps", "Time Trial Laps; 3|4|5|1|2" },
-      { "cannonball_ttrial_traffic", "Time Trial Traffic Amount; 3|4|5|6|7|8|0|1|2" },
-      { "cannonball_cont_traffic", "Continuous Mode Traffic Amount; 3|4|5|6|7|8|0|1|2" },
-      { NULL, NULL },
-   };
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &log))
       log_cb = log.log;
@@ -264,7 +230,7 @@ void retro_set_environment(retro_environment_t cb)
 
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
-   environ_cb(RETRO_ENVIRONMENT_SET_VARIABLES, variables);
+   libretro_set_core_options(environ_cb, &option_categories);
 
    vfs_iface_info.required_interface_version = 1;
    vfs_iface_info.iface                      = NULL;
@@ -369,6 +335,30 @@ static void update_variables(void)
       {
          config.video.fps = newval;
          timing_update = true;
+      }
+   }
+
+   var.key = "cannonball_sound_enable";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned int newval = 0;
+
+      if (strcmp(var.value, "ON") == 0)
+         newval = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         newval = 0;
+
+      if (newval != config.sound.enabled)
+      {
+         config.sound.enabled = newval;
+         #ifdef COMPILE_SOUND_CODE
+         if (config.sound.enabled)
+            cannonball::audio.start_audio();
+         else
+            cannonball::audio.stop_audio();
+         #endif
       }
    }
 
@@ -789,14 +779,16 @@ bool retro_load_game(const struct retro_game_info *info)
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "Up"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "Down"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Right"},
-      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear (Lo, 2 Buttons Mode)"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Gear (Low, 2 Buttons Mode)"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Accelerate"},
-      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear (Hi, 2 Buttons Mode)"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Gear (High, 2 Buttons Mode)"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Brake"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Start"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Coin"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,      "Adjust View"},
       {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,      "Go Back To Menu"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,     "Analog Brake"},
+      {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,     "Analog Accelerate"},
       {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_X, "Analog X" },
       {0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_LEFT, RETRO_DEVICE_ID_ANALOG_Y, "Analog Y" },
 

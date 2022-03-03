@@ -743,7 +743,11 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_ANALOG))
             {
+#ifdef __LIBRETRO__
+                if (++config.controls.analog >= 2)
+#else
                 if (++config.controls.analog == 3)
+#endif
                     config.controls.analog = 0;
                 input.analog = config.controls.analog;
             }
