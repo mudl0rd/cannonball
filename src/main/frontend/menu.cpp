@@ -28,7 +28,9 @@
 #include "frontend/ttrial.hpp"
 
 #ifdef __LIBRETRO__
+#include "lr_options.hpp"
 extern void update_geometry();
+extern void update_timing(void);
 #endif
 
 namespace boost {
@@ -556,6 +558,9 @@ void Menu::tick_menu()
             {
                 if (++config.cont_traffic > TTrial::MAX_TRAFFIC)
                     config.cont_traffic = 0;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.cont_traffic);
+#endif
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_gamemodes);
@@ -574,11 +579,17 @@ void Menu::tick_menu()
             {
                 if (++config.ttrial.laps > TTrial::MAX_LAPS)
                     config.ttrial.laps = 1;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.ttrial.laps);
+#endif
             }
             else if (SELECTED(ENTRY_TRAFFIC))
             {
                 if (++config.ttrial.traffic > TTrial::MAX_TRAFFIC)
                     config.ttrial.traffic = 0;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.ttrial.traffic);
+#endif
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_gamemodes);
@@ -654,6 +665,7 @@ void Menu::tick_menu()
                 restart_video();
 #ifdef __LIBRETRO__
                 update_geometry();
+                lr_options::set_frontend_variable(&config.video.widescreen);
 #endif
             }
             else if (SELECTED(ENTRY_HIRES))
@@ -673,6 +685,7 @@ void Menu::tick_menu()
                 video.sprite_layer->set_x_clip(false);
 #ifdef __LIBRETRO__
                 update_geometry();
+                lr_options::set_frontend_variable(&config.video.hires);
 #endif
             }
             else if (SELECTED(ENTRY_SCALE))
@@ -690,11 +703,20 @@ void Menu::tick_menu()
             }
             else if (SELECTED(ENTRY_FPS))
             {
+#ifdef __LIBRETRO__
+                int fps_prev = config.fps;
+#endif
                 if (++config.video.fps > 3)
                 {
                     config.video.fps = 1;
                 }
                 config.set_fps(config.video.fps);
+#ifdef __LIBRETRO__
+                if ((config.fps == 120 && fps_prev != 120) ||
+                    (config.fps != 120 && fps_prev == 120))
+                    update_timing();
+                lr_options::set_frontend_variable(&config.video.fps);
+#endif
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
@@ -710,11 +732,28 @@ void Menu::tick_menu()
                 else
                     cannonball::audio.stop_audio();              
                 #endif
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.sound.enabled);
+#endif
             }
             else if (SELECTED(ENTRY_ADVERTISE))
+#ifdef __LIBRETRO__
+            {
                 config.sound.advertise = !config.sound.advertise;
+                lr_options::set_frontend_variable(&config.sound.advertise);
+            }
+#else
+                config.sound.advertise = !config.sound.advertise;
+#endif
             else if (SELECTED(ENTRY_PREVIEWSND))
+#ifdef __LIBRETRO__
+            {
                 config.sound.preview = !config.sound.preview;
+                lr_options::set_frontend_variable(&config.sound.preview);
+            }
+#else
+                config.sound.preview = !config.sound.preview;
+#endif
             else if (SELECTED(ENTRY_FIXSAMPLES))
             {
                 int rom_type = !config.sound.fix_samples;
@@ -728,6 +767,9 @@ void Menu::tick_menu()
                 {
                     display_message(rom_type == 1 ? "CANT LOAD FIXED SAMPLES" : "CANT LOAD ORIGINAL SAMPLES");
                 }
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.sound.fix_samples);
+#endif
             }
             else if (SELECTED(ENTRY_MUSICTEST))
                 set_menu(&menu_musictest);
@@ -740,12 +782,22 @@ void Menu::tick_menu()
             {
                 if (++config.controls.gear > config.controls.GEAR_AUTO)
                     config.controls.gear = config.controls.GEAR_BUTTON;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.controls.gear);
+#endif
             }
             else if (SELECTED(ENTRY_ANALOG))
             {
+#ifdef __LIBRETRO__
+                if (++config.controls.analog >= 2)
+#else
                 if (++config.controls.analog == 3)
+#endif
                     config.controls.analog = 0;
                 input.analog = config.controls.analog;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.controls.analog);
+#endif
             }
             else if (SELECTED(ENTRY_REDEFKEY))
             {
@@ -765,11 +817,17 @@ void Menu::tick_menu()
             {
                 if (++config.controls.steer_speed > 9)
                     config.controls.steer_speed = 1;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.controls.steer_speed);
+#endif
             }
             else if (SELECTED(ENTRY_DPEDAL))
             {
                 if (++config.controls.pedal_speed > 9)
                     config.controls.pedal_speed = 1;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.controls.pedal_speed);
+#endif
             }
             else if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
@@ -779,17 +837,39 @@ void Menu::tick_menu()
             if (SELECTED(ENTRY_TRACKS))
             {
                 config.engine.jap = !config.engine.jap;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.engine.jap);
+#endif
             }
             else if (SELECTED(ENTRY_FREEPLAY))
             {
                config.engine.freeplay = !config.engine.freeplay;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.engine.freeplay);
+#endif
             }
             else if (SELECTED(ENTRY_FORCE_AI))
             {
                config.engine.force_ai = !config.engine.force_ai;
+#ifdef __LIBRETRO__
+                lr_options::set_frontend_variable(&config.engine.force_ai);
+#endif
             }
             else if (SELECTED(ENTRY_TIME))
             {
+#ifdef __LIBRETRO__
+                if (config.engine.dip_time < 4)
+                    config.engine.dip_time++;
+                else
+                    config.engine.dip_time = 0;
+
+                if (config.engine.dip_time == 4)
+                    config.engine.freeze_timer = 1;
+                else
+                    config.engine.freeze_timer = 0;
+
+                lr_options::set_frontend_variable(&config.engine.dip_time);
+#else
                 if (config.engine.dip_time == 3)
                 {
                     if (!config.engine.freeze_timer)
@@ -802,9 +882,23 @@ void Menu::tick_menu()
                 }
                 else
                     config.engine.dip_time++;
+#endif
             }
             else if (SELECTED(ENTRY_TRAFFIC))
             {
+#ifdef __LIBRETRO__
+                if (config.engine.dip_traffic < 4)
+                    config.engine.dip_traffic++;
+                else
+                    config.engine.dip_traffic = 0;
+
+                if (config.engine.dip_traffic == 4)
+                    config.engine.disable_traffic = 1;
+                else
+                    config.engine.disable_traffic = 0;
+
+                lr_options::set_frontend_variable(&config.engine.dip_traffic);
+#else
                 if (config.engine.dip_traffic == 3)
                 {
                     if (!config.engine.disable_traffic)
@@ -817,13 +911,35 @@ void Menu::tick_menu()
                 }
                 else
                     config.engine.dip_traffic++;
+#endif
             }
             else if (SELECTED(ENTRY_OBJECTS))
+#ifdef __LIBRETRO__
+            {
                 config.engine.level_objects = !config.engine.level_objects;
+                lr_options::set_frontend_variable(&config.engine.level_objects);
+            }
+#else
+                config.engine.level_objects = !config.engine.level_objects;
+#endif
             else if (SELECTED(ENTRY_PROTOTYPE))
+#ifdef __LIBRETRO__
+            {
                 config.engine.prototype = !config.engine.prototype;
+                lr_options::set_frontend_variable(&config.engine.prototype);
+            }
+#else
+                config.engine.prototype = !config.engine.prototype;
+#endif
             else if (SELECTED(ENTRY_ATTRACT))
+#ifdef __LIBRETRO__
+            {
                 config.engine.new_attract ^= 1;
+                lr_options::set_frontend_variable(&config.engine.new_attract);
+            }
+#else
+                config.engine.new_attract ^= 1;
+#endif
             if (SELECTED(ENTRY_BACK))
                 set_menu(&menu_settings);
         }
@@ -1103,6 +1219,10 @@ void Menu::restart_video()
 
 void Menu::start_game(int mode, int settings)
 {
+#ifdef __LIBRETRO__
+    int fps_prev = config.fps;
+#endif
+
     // Enhanced Settings
     if (settings == 1)
     {
@@ -1129,6 +1249,18 @@ void Menu::start_game(int mode, int settings)
         restart_video();
 #ifdef __LIBRETRO__
         update_geometry();
+        if ((config.fps == 120 && fps_prev != 120) ||
+            (config.fps != 120 && fps_prev == 120))
+            update_timing();
+
+        lr_options::set_frontend_variable(&config.sound.fix_samples);
+        lr_options::set_frontend_variable(&config.video.fps);
+        lr_options::set_frontend_variable(&config.video.widescreen);
+        lr_options::set_frontend_variable(&config.video.hires);
+        lr_options::set_frontend_variable(&config.engine.level_objects);
+        lr_options::set_frontend_variable(&config.engine.new_attract);
+        lr_options::set_frontend_variable(&config.engine.fix_bugs);
+        lr_options::set_frontend_variable(&config.sound.preview);
 #endif
     }
     // Original Settings
@@ -1156,6 +1288,18 @@ void Menu::start_game(int mode, int settings)
         restart_video();
 #ifdef __LIBRETRO__
         update_geometry();
+        if ((config.fps == 120 && fps_prev != 120) ||
+            (config.fps != 120 && fps_prev == 120))
+            update_timing();
+
+        lr_options::set_frontend_variable(&config.sound.fix_samples);
+        lr_options::set_frontend_variable(&config.video.fps);
+        lr_options::set_frontend_variable(&config.video.widescreen);
+        lr_options::set_frontend_variable(&config.video.hires);
+        lr_options::set_frontend_variable(&config.engine.level_objects);
+        lr_options::set_frontend_variable(&config.engine.new_attract);
+        lr_options::set_frontend_variable(&config.engine.fix_bugs);
+        lr_options::set_frontend_variable(&config.sound.preview);
 #endif
     }
     // Otherwise, use whatever is already setup...

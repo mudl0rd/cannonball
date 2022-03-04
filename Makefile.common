@@ -35,6 +35,7 @@ endif
 
 SOURCES_CXX := \
 	       $(CORE_DIR)/src/main/libretro/main.cpp \
+	       $(CORE_DIR)/src/main/libretro/lr_options.cpp \
 	       $(CORE_DIR)/src/main/libretro/ffeedback.cpp \
 	       $(CORE_DIR)/src/main/libretro/audio.cpp \
 	       $(CORE_DIR)/src/main/libretro/input.cpp \
