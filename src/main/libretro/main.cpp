@@ -214,10 +214,80 @@ static struct retro_system_av_info g_av_info;
 
 char rom_path[1024];
 
+static bool option_visibility_set = false;
+static bool sound_enable_prev     = true;
+static bool analog_enable_prev    = true;
+
+static bool update_option_visibility(void)
+{
+   struct retro_variable var                       = {0};
+   struct retro_core_option_display option_display = {0};
+   bool sound_enable                               = true;
+   bool analog_enable                              = true;
+   bool updated                                    = false;
+
+   /* Check if sound is enabled */
+   var.key = "cannonball_sound_enable";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) &&
+       var.value &&
+       (strcmp(var.value, "OFF") == 0))
+      sound_enable = false;
+
+   /* Check if analog input is enabled */
+   var.key = "cannonball_analog";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) &&
+       var.value &&
+       (strcmp(var.value, "OFF") == 0))
+      analog_enable = false;
+
+   /* Hide auxiliary sound options, if required */
+   if ((sound_enable != sound_enable_prev) ||
+       (!option_visibility_set && !sound_enable))
+   {
+      option_display.visible = sound_enable;
+
+      option_display.key = "cannonball_sound_advertise";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+
+      option_display.key = "cannonball_sound_preview";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+
+      option_display.key = "cannonball_sound_fix_samples";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+
+      sound_enable_prev = sound_enable;
+      updated           = true;
+   }
+
+   /* Hide auxiliary input options, if required */
+   if ((analog_enable != analog_enable_prev) ||
+       (!option_visibility_set && analog_enable))
+   {
+      option_display.visible = !analog_enable;
+
+      option_display.key = "cannonball_steer_speed";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+
+      option_display.key = "cannonball_pedal_speed";
+      environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY, &option_display);
+
+      analog_enable_prev = analog_enable;
+      updated            = true;
+   }
+
+   option_visibility_set = true;
+   return updated;
+}
+
 void retro_set_environment(retro_environment_t cb)
 {
    struct retro_vfs_interface_info vfs_iface_info;
    struct retro_log_callback log;
+   struct retro_core_options_update_display_callback update_display_cb;
    bool no_content = true;
    bool option_categories = false;
 
@@ -231,6 +301,10 @@ void retro_set_environment(retro_environment_t cb)
    environ_cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
    libretro_set_core_options(environ_cb, &option_categories);
+
+   update_display_cb.callback = update_option_visibility;
+   environ_cb(RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK,
+         &update_display_cb);
 
    vfs_iface_info.required_interface_version = 1;
    vfs_iface_info.iface                      = NULL;
@@ -669,6 +743,9 @@ static void update_variables(void)
 
    if (timing_update)
       config.set_fps(config.video.fps);
+
+   /* Show/hide core options */
+   update_option_visibility();
 }
 
 void retro_get_system_info(struct retro_system_info *info) {
@@ -943,6 +1020,10 @@ void retro_init(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;
+
+   option_visibility_set = false;
+   sound_enable_prev     = true;
+   analog_enable_prev    = true;
 }
 
 void retro_deinit(void)
