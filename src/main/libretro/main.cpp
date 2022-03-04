@@ -11,8 +11,10 @@
 
 #include <file/file_path.h>
 #include <streams/file_stream.h>
+#include <file/file_path.h>
 #include <string/stdstring.h>
 
+#include <libretro.h>
 #include "libretro_core_options.h"
 
 #include "input.hpp"
@@ -30,6 +32,8 @@
 #include "engine/oinputs.hpp"
 #include "engine/ooutputs.hpp"
 #include "engine/omusic.hpp"
+
+#include "lr_options.hpp"
 
 // Haptic Support.
 #include "ffeedback.hpp"
@@ -196,10 +200,6 @@ static void config_init(void)
 
 
 //  libretro.cpp
-
-#include <libretro.h>
-#include <compat/strl.h>
-#include <file/file_path.h>
 
 retro_log_printf_t                 log_cb;
 retro_video_refresh_t              video_cb;
@@ -751,6 +751,10 @@ end:
 
    /* Show/hide core options */
    update_option_visibility();
+
+   /* Update menu to reflect any option changes */
+   if (!startup && (state == STATE_MENU))
+      menu->refresh_menu();
 }
 
 void retro_get_system_info(struct retro_system_info *info) {
@@ -1026,6 +1030,8 @@ void retro_init(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_INPUT_BITMASKS, NULL))
       libretro_supports_bitmasks = true;
 
+   lr_options::init();
+
    option_visibility_set = false;
    sound_enable_prev     = true;
    analog_enable_prev    = true;
@@ -1033,6 +1039,8 @@ void retro_init(void)
 
 void retro_deinit(void)
 {
+   lr_options::close();
+
    libretro_supports_bitmasks = false;
 }
 
