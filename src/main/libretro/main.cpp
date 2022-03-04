@@ -53,8 +53,6 @@ Interface cannonboard;
 // Pause Engine
 bool pause_engine;
 
-bool timing_update = false;
-
 static bool libretro_supports_bitmasks = false;
 
 static void config_init(void)
@@ -329,9 +327,10 @@ void update_geometry()
   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
-static void update_variables(void)
+static void update_variables(bool startup)
 {
    bool geometry_update = false;
+   bool timing_update   = false;
    struct retro_variable var;
 
    var.key = "cannonball_menu_enabled";
@@ -351,6 +350,27 @@ static void update_variables(void)
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var))
    {
       config.menu.road_scroll_speed = atoi(var.value);
+   }
+
+   var.key = "cannonball_video_fps";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      unsigned int newval = 0;
+
+      if (strcmp(var.value, "Ultra Smooth (120)") == 0)
+         newval = 3;
+      else if (strcmp(var.value, "Original (60/30)") == 0)
+         newval = 1;
+      else
+         newval = 2;
+
+      if (newval != config.video.fps)
+      {
+         config.video.fps = newval;
+         timing_update = true;
+      }
    }
 
    var.key = "cannonball_video_widescreen";
@@ -391,27 +411,6 @@ static void update_variables(void)
       }
    }
 
-   var.key = "cannonball_video_fps";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      unsigned int newval = 0;
-
-      if (strcmp(var.value, "Ultra Smooth (120)") == 0)
-         newval = 3;
-      else if (strcmp(var.value, "Original (60/30)") == 0)
-         newval = 1;
-      else
-         newval = 2;
-
-      if (newval != config.video.fps)
-      {
-         config.video.fps = newval;
-         timing_update = true;
-      }
-   }
-
    var.key = "cannonball_sound_enable";
    var.value = NULL;
 
@@ -434,39 +433,6 @@ static void update_variables(void)
             cannonball::audio.stop_audio();
          #endif
       }
-   }
-
-   var.key = "cannonball_sound_advertise";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.sound.advertise = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.sound.advertise = 0;
-   }
-
-   var.key = "cannonball_sound_preview";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.sound.preview = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.sound.preview = 0;
-   }
-
-   var.key = "cannonball_sound_fix_samples";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.sound.fix_samples = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.sound.fix_samples = 0;
    }
 
    var.key = "cannonball_gear";
@@ -503,22 +469,6 @@ static void update_variables(void)
       }
    }
 
-   var.key = "cannonball_steer_speed";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      config.controls.steer_speed = atoi(var.value);
-   }
-
-   var.key = "cannonball_pedal_speed";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      config.controls.pedal_speed = atoi(var.value);
-   }
-
    var.key = "cannonball_haptic_strength";
    var.value = NULL;
 
@@ -551,6 +501,93 @@ static void update_variables(void)
                config.controls.max_force,
                config.controls.min_force,
                config.controls.force_duration);
+   }
+
+   var.key = "cannonball_freeplay";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.engine.freeplay = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.engine.freeplay = 0;
+   }
+
+   var.key = "cannonball_force_ai";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "OFF") == 0)
+         config.engine.force_ai = false;
+      else
+         config.engine.force_ai = true;
+   }
+
+   /* All of the remaining options require a core
+    * restart to apply */
+   if (!startup)
+      goto end;
+
+   var.key = "cannonball_sound_advertise";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.sound.advertise = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.sound.advertise = 0;
+   }
+
+   var.key = "cannonball_sound_preview";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.sound.preview = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.sound.preview = 0;
+   }
+
+   var.key = "cannonball_sound_fix_samples";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.sound.fix_samples = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.sound.fix_samples = 0;
+   }
+
+   var.key = "cannonball_steer_speed";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      config.controls.steer_speed = atoi(var.value);
+   }
+
+   var.key = "cannonball_pedal_speed";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      config.controls.pedal_speed = atoi(var.value);
+   }
+
+   var.key = "cannonball_jap";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.engine.jap = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.engine.jap = 0;
    }
 
    var.key = "cannonball_dip_time";
@@ -599,26 +636,15 @@ static void update_variables(void)
       config.engine.dip_traffic = diptraffic;
    }
 
-   var.key = "cannonball_freeplay";
+   var.key = "cannonball_level_objects";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (strcmp(var.value, "ON") == 0)
-         config.engine.freeplay = 1;
+         config.engine.level_objects = 1;
       else if (strcmp(var.value, "OFF") == 0)
-         config.engine.freeplay = 0;
-   }
-
-   var.key = "cannonball_jap";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.engine.jap = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.engine.jap = 0;
+         config.engine.level_objects = 0;
    }
 
    var.key = "cannonball_prototype";
@@ -632,15 +658,15 @@ static void update_variables(void)
          config.engine.prototype = 0;
    }
 
-   var.key = "cannonball_level_objects";
+   var.key = "cannonball_new_attract";
    var.value = NULL;
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
    {
       if (strcmp(var.value, "ON") == 0)
-         config.engine.level_objects = 1;
+         config.engine.new_attract = 1;
       else if (strcmp(var.value, "OFF") == 0)
-         config.engine.level_objects = 0;
+         config.engine.new_attract = 0;
    }
 
    var.key = "cannonball_randomgen";
@@ -652,17 +678,6 @@ static void update_variables(void)
          config.engine.randomgen = 0;
       else
          config.engine.randomgen = 1;
-   }
-
-   var.key = "cannonball_force_ai";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "OFF") == 0)
-         config.engine.force_ai = false;
-      else
-         config.engine.force_ai = true;
    }
 
    var.key = "cannonball_fix_bugs";
@@ -685,28 +700,6 @@ static void update_variables(void)
          config.engine.fix_timer = 1;
       else if (strcmp(var.value, "OFF") == 0)
          config.engine.fix_timer = 0;
-   }
-
-   var.key = "cannonball_layout_debug";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.engine.layout_debug = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.engine.layout_debug = 0;
-   }
-
-   var.key = "cannonball_new_attract";
-   var.value = NULL;
-
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
-   {
-      if (strcmp(var.value, "ON") == 0)
-         config.engine.new_attract = 1;
-      else if (strcmp(var.value, "OFF") == 0)
-         config.engine.new_attract = 0;
    }
 
    var.key = "cannonball_ttrial_laps";
@@ -733,6 +726,18 @@ static void update_variables(void)
       config.cont_traffic = atoi(var.value);
    }
 
+   var.key = "cannonball_layout_debug";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "ON") == 0)
+         config.engine.layout_debug = 1;
+      else if (strcmp(var.value, "OFF") == 0)
+         config.engine.layout_debug = 0;
+   }
+
+end:
    if (geometry_update)
    {
       video.disable();
@@ -917,7 +922,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
    config_init();
 
-   update_variables();
+   update_variables(true);
 
    // Load fixed PCM ROM based on config
    if (config.sound.fix_samples)
@@ -1114,7 +1119,7 @@ void retro_run(void)
     bool updated = false;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-        update_variables();
+        update_variables(false);
 
     if ((config.fps == 120 && system_av_info.timing.fps == 60) ||
         (config.fps != 120 && system_av_info.timing.fps == 119.95))
