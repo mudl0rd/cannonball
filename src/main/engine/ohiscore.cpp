@@ -6,7 +6,11 @@
     See license.txt for more details.
 ***************************************************************************/
 
+#ifdef __LIBRETRO__
+#include "lr_setup.hpp"
+#else
 #include "setup.hpp"
+#endif
 #include "main.hpp"
 #include "engine/ohud.hpp"
 #include "engine/oinputs.hpp"

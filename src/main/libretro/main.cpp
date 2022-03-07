@@ -23,7 +23,7 @@
 #include "romloader.hpp"
 #include "trackloader.hpp"
 #include "main.hpp"
-#include "setup.hpp"
+#include "lr_setup.hpp"
 #include "engine/outrun.hpp"
 #include "frontend/config.hpp"
 #include "frontend/menu.hpp"
@@ -211,6 +211,10 @@ retro_audio_sample_batch_t         audio_batch_cb;
 static struct retro_system_av_info g_av_info;
 
 char rom_path[1024];
+
+char FILENAME_SCORES[1024];
+char FILENAME_TTRIAL[1024];
+char FILENAME_CONT[1024];
 
 static bool option_visibility_set = false;
 static bool sound_enable_prev     = true;
@@ -856,6 +860,34 @@ static void retro_osd_error_msg(const char *str)
    }
 }
 
+static void retro_build_save_paths(void)
+{
+   const char *save_dir = NULL;
+
+   FILENAME_SCORES[0] = '\0';
+   FILENAME_TTRIAL[0] = '\0';
+   FILENAME_CONT[0] = '\0';
+
+   /* Get frontend save directory
+    * > Use game data directory as a fallback if
+    *   no save directory is defined */
+   if (!environ_cb(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, &save_dir) ||
+         !save_dir)
+      save_dir = rom_path;
+
+   /* Build high score save paths
+    * > Note: These are not 'full' paths;
+    *   suffix + extension are added elsewhere */
+   fill_pathname_join(FILENAME_SCORES, save_dir,
+         "hiscores", sizeof(FILENAME_SCORES));
+
+   fill_pathname_join(FILENAME_TTRIAL, save_dir,
+         "hiscores_timetrial", sizeof(FILENAME_TTRIAL));
+
+   fill_pathname_join(FILENAME_CONT, save_dir,
+         "hiscores_continuous", sizeof(FILENAME_CONT));
+}
+
 bool retro_load_game(const struct retro_game_info *info)
 {
    enum retro_pixel_format fmt = RETRO_PIXEL_FORMAT_RGB565;
@@ -915,6 +947,7 @@ bool retro_load_game(const struct retro_game_info *info)
    }
 
    log_cb(RETRO_LOG_INFO, "Rom directory: %s\n", rom_path);
+   retro_build_save_paths();
 
    bool loaded = roms.load_revb_roms();
 

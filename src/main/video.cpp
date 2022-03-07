@@ -10,7 +10,11 @@
 ***************************************************************************/
 
 #include "video.hpp"
+#ifdef __LIBRETRO__
+#include "lr_setup.hpp"
+#else
 #include "setup.hpp"
+#endif
 #include "globals.hpp"
 #include "frontend/config.hpp"
 

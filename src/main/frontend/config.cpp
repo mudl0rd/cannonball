@@ -16,7 +16,11 @@
 #include "main.hpp"
 #include "config.hpp"
 #include "globals.hpp"
+#ifdef __LIBRETRO__
+#include "lr_setup.hpp"
+#else
 #include "setup.hpp"
+#endif
 #include "../utils.hpp"
 
 #include "engine/ohiscore.hpp"
@@ -180,18 +184,24 @@ bool Config::clear_scores()
     // Init Default Hiscores
     ohiscore.init_def_scores();
 
-    int clear = 0;
+    bool files_removed = false;
 
     // Remove XML files if they exist
-    clear += remove(std::string(FILENAME_SCORES).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_SCORES).append("_jap.xml").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_TTRIAL).append("_jap.xml").c_str());
-    clear += remove(std::string(FILENAME_CONT).append(".xml").c_str());
-    clear += remove(std::string(FILENAME_CONT).append("_jap.xml").c_str());
+    // remove() returns 0 on success
+    if (!remove(std::string(FILENAME_SCORES).append(".xml").c_str()))
+        files_removed = true;
+    if (!remove(std::string(FILENAME_SCORES).append("_jap.xml").c_str()))
+        files_removed = true;
+    if (!remove(std::string(FILENAME_TTRIAL).append(".xml").c_str()))
+        files_removed = true;
+    if (!remove(std::string(FILENAME_TTRIAL).append("_jap.xml").c_str()))
+        files_removed = true;
+    if (!remove(std::string(FILENAME_CONT).append(".xml").c_str()))
+        files_removed = true;
+    if (!remove(std::string(FILENAME_CONT).append("_jap.xml").c_str()))
+        files_removed = true;
 
-    // remove returns 0 on success
-    return clear == 6;
+    return files_removed;
 }
 
 void Config::set_fps(int fps)
