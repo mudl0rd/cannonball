@@ -13,7 +13,11 @@
 
 #include "main.hpp"
 #include "menu.hpp"
+#ifdef __LIBRETRO__
+#include "lr_setup.hpp"
+#else
 #include "setup.hpp"
+#endif
 #include "../utils.hpp"
 #include "../cannonboard/interface.hpp"
 
