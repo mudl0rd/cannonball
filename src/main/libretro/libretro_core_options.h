@@ -131,6 +131,7 @@ struct retro_core_option_v2_definition option_defs_us[] = {
       NULL,
       "video",
       {
+         { "Low (30)",           NULL },
          { "Smooth (60)",        NULL },
          { "Ultra Smooth (120)", NULL },
          { "Original (60/30)",   NULL },
