@@ -75,7 +75,11 @@ static void config_init(void)
     config.video.mode       = 0; // Video Mode: Default is Windowed
     config.video.scale      = 1; // Video Scale: Default is 2x
     config.video.scanlines  = 0; // Scanlines
+#ifdef LOW_FPS
+    config.video.fps        = 0; // Default is 30 fps
+#else
     config.video.fps        = 2; // Default is 60 fps
+#endif
     config.video.fps_count  = 0; // FPS Counter
 #ifdef DINGUX
     config.video.widescreen = 0; // Enable Widescreen Mode

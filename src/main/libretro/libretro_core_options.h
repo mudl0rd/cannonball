@@ -137,7 +137,11 @@ struct retro_core_option_v2_definition option_defs_us[] = {
          { "Original (60/30)",   NULL },
          { NULL, NULL },
       },
+#ifdef LOW_FPS
+      "Low (30)"
+#else
       "Smooth (60)"
+#endif
    },
    {
       "cannonball_video_widescreen",
