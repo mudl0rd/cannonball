@@ -60,6 +60,9 @@ namespace lr_options
 
       switch (val)
       {
+         case 0:
+            strlcpy(str, "Low (30)", len);
+            break;
          case 1:
             strlcpy(str, "Original (60/30)", len);
             break;

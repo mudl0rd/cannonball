@@ -712,12 +712,11 @@ void Menu::tick_menu()
 #endif
                 if (++config.video.fps > 3)
                 {
-                    config.video.fps = 1;
+                    config.video.fps = 0;
                 }
                 config.set_fps(config.video.fps);
 #ifdef __LIBRETRO__
-                if ((config.fps == 120 && fps_prev != 120) ||
-                    (config.fps != 120 && fps_prev == 120))
+                if (config.fps != fps_prev)
                     update_timing();
                 lr_options::set_frontend_variable(&config.video.fps);
 #endif
@@ -1020,8 +1019,9 @@ void Menu::refresh_menu()
             else if (SELECTED(ENTRY_HIRES))
                 set_menu_text(ENTRY_HIRES, config.video.hires ? "ON" : "OFF");
             else if (SELECTED(ENTRY_FPS))
-            {               
-                if (config.video.fps == 1) s = "ORIGINAL";
+            {
+                if (config.video.fps == 0)      s = "30 FPS";
+                else if (config.video.fps == 1) s = "ORIGINAL";
                 else if (config.video.fps == 2) s = "60 FPS";
                 else if (config.video.fps == 3) s = "120 FPS";
                 set_menu_text(ENTRY_FPS, s);
@@ -1253,8 +1253,7 @@ void Menu::start_game(int mode, int settings)
         restart_video();
 #ifdef __LIBRETRO__
         update_geometry();
-        if ((config.fps == 120 && fps_prev != 120) ||
-            (config.fps != 120 && fps_prev == 120))
+        if (config.fps != fps_prev)
             update_timing();
 
         lr_options::set_frontend_variable(&config.sound.fix_samples);
@@ -1292,8 +1291,7 @@ void Menu::start_game(int mode, int settings)
         restart_video();
 #ifdef __LIBRETRO__
         update_geometry();
-        if ((config.fps == 120 && fps_prev != 120) ||
-            (config.fps != 120 && fps_prev == 120))
+        if (config.fps != fps_prev)
             update_timing();
 
         lr_options::set_frontend_variable(&config.sound.fix_samples);

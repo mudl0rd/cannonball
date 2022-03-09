@@ -75,7 +75,11 @@ static void config_init(void)
     config.video.mode       = 0; // Video Mode: Default is Windowed
     config.video.scale      = 1; // Video Scale: Default is 2x
     config.video.scanlines  = 0; // Scanlines
+#ifdef LOW_FPS
+    config.video.fps        = 0; // Default is 30 fps
+#else
     config.video.fps        = 2; // Default is 60 fps
+#endif
     config.video.fps_count  = 0; // FPS Counter
 #ifdef DINGUX
     config.video.widescreen = 0; // Enable Widescreen Mode
@@ -367,6 +371,8 @@ static void update_variables(bool startup)
          newval = 3;
       else if (strcmp(var.value, "Original (60/30)") == 0)
          newval = 1;
+      else if (strcmp(var.value, "Low (30)") == 0)
+         newval = 0;
       else
          newval = 2;
 
@@ -774,7 +780,7 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
 
    memset(info, 0, sizeof(*info));
 
-   info->timing.fps            = (config.fps != 120) ? 60 : 119.95;
+   info->timing.fps            = (config.fps != 120) ? config.fps : 119.95;
    info->timing.sample_rate    = 44100;
 
    info->geometry.max_width    = S16_WIDTH_WIDE << 1;
@@ -1162,8 +1168,9 @@ void retro_run(void)
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
         update_variables(false);
 
-    if ((config.fps == 120 && system_av_info.timing.fps == 60) ||
-        (config.fps != 120 && system_av_info.timing.fps == 119.95))
+    if ((config.fps != system_av_info.timing.fps) &&
+        ((config.fps == 120 && system_av_info.timing.fps != 119.95) ||
+         (config.fps != 120 && system_av_info.timing.fps == 119.95)))
         update_timing();
 
     frame++;
