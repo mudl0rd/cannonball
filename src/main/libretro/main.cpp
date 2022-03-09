@@ -212,7 +212,9 @@ static retro_input_state_t         input_state_cb;
 retro_environment_t                environ_cb;
 static retro_audio_sample_t        audio_cb;
 retro_audio_sample_batch_t         audio_batch_cb;
-static struct retro_system_av_info g_av_info;
+
+static bool libretro_fps_record_inhibit = false;
+static int libretro_fps_prev            = 0;
 
 char rom_path[1024];
 
@@ -331,7 +333,13 @@ void retro_set_input_state(retro_input_state_t cb) { input_state_cb = cb; }
 void update_geometry()
 {
   struct retro_system_av_info av_info;
+  /* Calling 'RETRO_ENVIRONMENT_SET_GEOMETRY' does not
+   * update frontend timing; we must therefore inhibit
+   * any record of the last set frame rate value, or
+   * the next timing update may be skipped */
+  libretro_fps_record_inhibit = true;
   retro_get_system_av_info(&av_info);
+  libretro_fps_record_inhibit = false;
   environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &av_info);
 }
 
@@ -780,8 +788,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
 
    memset(info, 0, sizeof(*info));
 
-   info->timing.fps            = (config.fps != 120) ? config.fps : 119.95;
-   info->timing.sample_rate    = 44100;
+   info->timing.fps            = config.fps;
+   /* Due to integer rounding errors (44100/102 = 367.5),
+    * we produce fewer than the expected 44100 samples
+    * per second when running at 120 fps... */
+   info->timing.sample_rate    = (config.fps == 120) ? 44040 : 44100;
 
    info->geometry.max_width    = S16_WIDTH_WIDE << 1;
    info->geometry.max_height   = S16_HEIGHT     << 1;
@@ -798,6 +809,9 @@ void retro_get_system_av_info(struct retro_system_av_info *info) {
       info->geometry.base_height  = S16_HEIGHT * scale_factor;
       info->geometry.aspect_ratio = 4.0 / 3.0;
    }
+
+   if (!libretro_fps_record_inhibit)
+      libretro_fps_prev = config.fps;
 }
 
 void update_timing(void)
@@ -1080,6 +1094,9 @@ void retro_deinit(void)
 {
    lr_options::close();
 
+   libretro_fps_record_inhibit = false;
+   libretro_fps_prev = 0;
+
    libretro_supports_bitmasks = false;
 }
 
@@ -1161,16 +1178,12 @@ static void process_events(void)
 
 void retro_run(void)
 {
-    struct retro_system_av_info system_av_info;
-    retro_get_system_av_info(&system_av_info);
     bool updated = false;
 
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
         update_variables(false);
 
-    if ((config.fps != system_av_info.timing.fps) &&
-        ((config.fps == 120 && system_av_info.timing.fps != 119.95) ||
-         (config.fps != 120 && system_av_info.timing.fps == 119.95)))
+    if (config.fps != libretro_fps_prev)
         update_timing();
 
     frame++;
@@ -1183,14 +1196,24 @@ void retro_run(void)
        packet      = cannonboard.get_packet();
 #endif
 
-    // Non standard FPS.
-    // Determine whether to tick the current frame.
-    if (config.fps != 30)
+    switch (config.fps)
     {
-        if (config.fps == 60)
+        case 60:
+            /* 60 fps
+             * Non-standard: tick every second frame */
             tick_frame = frame & 1;
-        else if (config.fps == 120)
+            break;
+        case 120:
+            /* 120 fps
+             * Non-standard: tick every fourth frame */
             tick_frame = (frame & 3) == 1;
+            break;
+        case 30:
+        default:
+            /* 30 fps
+             * Standard rate: tick every frame */
+            tick_frame = true;
+            break;
     }
 
     process_events();
