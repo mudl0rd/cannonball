@@ -158,6 +158,11 @@ else ifeq ($(platform), tvos-arm64)
    endif
    CC = clang -arch arm64 -isysroot $(IOSSDK)
    CXX = clang++ -arch arm64 -isysroot $(IOSSDK)
+   MINVER = -mappletvos-version-min=11.0
+   LDFLAGS += $(MINVER)
+   FLAGS += $(MINVER)
+   CC += $(MINVER)
+   CXX += $(MINVER)
 
 # QNX
 else ifeq ($(platform), qnx)
